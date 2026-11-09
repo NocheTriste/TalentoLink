@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TalentoLink · Prototipo funcional</title>
+<meta name="description" content="TalentoLink: prototipo funcional para la gestión de vacantes y hojas de vida en pymes colombianas.">
+<style>
+:root{
+  --brand:#0d6b6e; --brand-700:#0a5356; --brand-50:#e7f3f3; --brand-100:#cfe7e7;
+  --accent:#e8a33d; --ink:#1b2333; --ink-2:#465063; --muted:#6b7487;
+  --line:#e2e6ec; --line-2:#eef1f5; --bg:#f5f7fa; --card:#fff;
+  --ok:#1f7a4d; --ok-bg:#e5f4ec; --warn:#9a6200; --warn-bg:#fdf3e1;
+  --bad:#b3261e; --bad-bg:#fbeaea; --info:#2456b3; --info-bg:#e8effc; --violet:#6b3fb0; --violet-bg:#f1ebfb;
+  --radius:10px; --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  color:var(--ink); font-size:15px; line-height:1.45;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg)}
+a{color:var(--brand);text-decoration:none} a:hover{text-decoration:underline}
+h1,h2,h3{line-height:1.2;margin:0 0 .4em} h1{font-size:1.6rem} h2{font-size:1.25rem} h3{font-size:1.05rem}
+p{margin:0 0 .8em}
+.muted{color:var(--muted)} .small{font-size:.85rem} .right{text-align:right} .nowrap{white-space:nowrap}
+.btn{display:inline-flex;align-items:center;gap:.4em;border:1px solid var(--line);background:#fff;color:var(--ink);
+  padding:.5em .9em;border-radius:8px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none!important;line-height:1.2}
+.btn:hover{background:var(--line-2)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff} .btn.primary:hover{background:var(--brand-700)}
+.btn.danger{color:var(--bad);border-color:#f0c9c6} .btn.danger:hover{background:var(--bad-bg)}
+.btn.ghost{border-color:transparent;background:transparent} .btn.ghost:hover{background:var(--line-2)}
+.btn.sm{padding:.32em .6em;font-size:.85rem;font-weight:600}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+:focus-visible{outline:3px solid #7cc4c6;outline-offset:2px}
+input,select,textarea{font:inherit;color:inherit;border:1px solid #cfd5de;border-radius:8px;padding:.5em .65em;background:#fff;width:100%}
+textarea{min-height:90px;resize:vertical}
+label{font-weight:600;font-size:.9rem;display:block;margin-bottom:.25em}
+.field{margin-bottom:.9em} .field .hint{font-weight:400;color:var(--muted);font-size:.8rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 1em} .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:0 1em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.1em 1.2em}
+.badge{display:inline-flex;align-items:center;gap:.35em;font-size:.78rem;font-weight:700;padding:.2em .6em;border-radius:999px;white-space:nowrap}
+.badge::before{content:"";width:.5em;height:.5em;border-radius:50%;background:currentColor}
+.b-recibido{background:var(--info-bg);color:var(--info)} .b-revision{background:var(--warn-bg);color:var(--warn)}
+.b-entrevista{background:var(--violet-bg);color:var(--violet)} .b-descartado{background:#eef0f3;color:#5a6372}
+.b-contratado{background:var(--ok-bg);color:var(--ok)}
+.b-abierta{background:var(--ok-bg);color:var(--ok)} .b-pausada{background:var(--warn-bg);color:var(--warn)} .b-cerrada{background:#eef0f3;color:#5a6372}
+table{border-collapse:collapse;width:100%} th,td{text-align:left;padding:.6em .7em;border-bottom:1px solid var(--line-2);vertical-align:middle}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;background:#fafbfc}
+tr.click{cursor:pointer} tr.click:hover td{background:#f8fbfb}
+.alert{padding:.7em .9em;border-radius:8px;margin-bottom:1em;font-size:.92rem}
+.alert.err{background:var(--bad-bg);color:var(--bad)} .alert.ok{background:var(--ok-bg);color:var(--ok)} .alert.info{background:var(--info-bg);color:var(--info)}
+/* Público */
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.topbar .in{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:1em;padding:.7em 1.2em}
+.logo{display:flex;align-items:center;gap:.5em;font-weight:800;font-size:1.15rem;color:var(--ink)!important;text-decoration:none!important}
+.logo .mk{width:30px;height:30px;border-radius:8px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:.95rem}
+.logo b{color:var(--brand)}
+.topbar nav{margin-left:auto;display:flex;gap:.4em;align-items:center;flex-wrap:wrap}
+.wrap{max-width:1120px;margin:0 auto;padding:1.5em 1.2em 3em}
+.hero{background:linear-gradient(135deg,#0d6b6e 0%,#0a4f62 100%);color:#fff}
+.hero .in{max-width:1120px;margin:0 auto;padding:3.2em 1.2em;display:grid;grid-template-columns:1.2fr 1fr;gap:2em;align-items:center}
+.hero h1{font-size:2.3rem;margin-bottom:.4em} .hero p{font-size:1.1rem;opacity:.92}
+.hero .btn{border-color:#fff} .hero .btn.alt{background:transparent;color:#fff} .hero .btn.alt:hover{background:rgba(255,255,255,.12)}
+.hero .mock{background:#fff;color:var(--ink);border-radius:12px;padding:1em;box-shadow:0 20px 40px rgba(0,0,0,.25)}
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:1em;margin-top:1.5em}
+.feat .card h3{color:var(--brand)}
+.joblist{display:grid;gap:.8em}
+.job{display:flex;gap:1em;align-items:flex-start}
+.job .meta{display:flex;flex-wrap:wrap;gap:.4em 1em;color:var(--muted);font-size:.88rem;margin:.2em 0 .5em}
+.foot{text-align:center;color:var(--muted);font-size:.82rem;padding:2em 1em}
+/* App */
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.side{background:#0f2b33;color:#cfe0e3;padding:1em .8em;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+.side .logo{color:#fff!important;margin:.2em .4em 1.2em} .side .logo b{color:#7fd3d6}
+.side a.nav{display:flex;align-items:center;gap:.6em;color:#cfe0e3;padding:.55em .7em;border-radius:8px;font-weight:600;font-size:.93rem;text-decoration:none}
+.side a.nav:hover{background:rgba(255,255,255,.07)} .side a.nav.on{background:#18505a;color:#fff}
+.side .ico{width:18px;text-align:center;opacity:.9}
+.side .pill{margin-left:auto;background:var(--accent);color:#2a1a00;border-radius:999px;font-size:.72rem;padding:.05em .5em;font-weight:800}
+.side .who{margin-top:auto;border-top:1px solid rgba(255,255,255,.12);padding:.9em .5em 0;font-size:.85rem}
+.side .who b{color:#fff;display:block}
+.main{padding:1.4em 1.8em 3em;min-width:0}
+.head{display:flex;align-items:center;gap:1em;flex-wrap:wrap;margin-bottom:1.2em}
+.head .acts{margin-left:auto;display:flex;gap:.5em;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:.9em;margin-bottom:1.2em}
+.kpi .v{font-size:1.75rem;font-weight:800;line-height:1.1} .kpi .l{color:var(--muted);font-size:.85rem}
+.cols{display:grid;grid-template-columns:1.4fr 1fr;gap:1.1em}
+.filters{display:grid;grid-template-columns:2fr repeat(5,1fr);gap:.6em;align-items:end;margin-bottom:.9em}
+.filters label{font-size:.78rem;color:var(--muted)}
+.perf{font-size:.82rem;color:var(--muted)}
+.menu-btn{display:none}
+/* Charts */
+.bars{display:grid;gap:.55em}
+.bar-row{display:grid;grid-template-columns:minmax(120px,38%) 1fr 44px;gap:.7em;align-items:center;font-size:.88rem}
+.bar-row .lab{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{height:20px;position:relative;border-left:1px solid #d5dbe3}
+.bar{height:20px;background:var(--brand);border-radius:0 4px 4px 0;min-width:2px;cursor:default}
+.bar-row .val{font-weight:700;color:var(--ink)}
+.tip{position:fixed;pointer-events:none;background:#1b2333;color:#fff;padding:.4em .6em;border-radius:6px;font-size:.8rem;z-index:100;display:none}
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(15,25,35,.45);display:flex;align-items:flex-start;justify-content:center;z-index:50;padding:3vh 1em;overflow:auto}
+.modal{background:#fff;border-radius:12px;width:min(980px,100%);box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.modal .mh{display:flex;align-items:center;gap:1em;padding:1em 1.2em;border-bottom:1px solid var(--line)}
+.modal .mb{padding:1.1em 1.2em}
+.modal .mh .x{margin-left:auto}
+.dl{display:grid;grid-template-columns:150px 1fr;gap:.35em .8em;font-size:.92rem} .dl dt{color:var(--muted)} .dl dd{margin:0;font-weight:600}
+.timeline{list-style:none;margin:0;padding:0} .timeline li{border-left:2px solid var(--brand-100);padding:0 0 .8em .9em;position:relative;font-size:.88rem}
+.timeline li::before{content:"";position:absolute;left:-6px;top:.35em;width:10px;height:10px;border-radius:50%;background:var(--brand)}
+.pdfbox{border:1px solid var(--line);border-radius:8px;height:420px;width:100%;background:#f2f4f7}
+.toast{position:fixed;bottom:20px;right:20px;background:#1b2333;color:#fff;padding:.75em 1em;border-radius:8px;box-shadow:var(--shadow);z-index:200;max-width:360px;font-size:.92rem}
+.tabs{display:flex;gap:.3em;border-bottom:1px solid var(--line);margin-bottom:1em}
+.tabs a{padding:.55em .9em;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;text-decoration:none}
+.tabs a.on{color:var(--brand);border-color:var(--brand)}
+.empty{padding:2em;text-align:center;color:var(--muted)}
+.mail{border:1px solid var(--line);border-radius:8px;padding:.8em 1em;margin-bottom:.6em;background:#fff}
+.mail .s{font-weight:700} .mail pre{white-space:pre-wrap;font-family:inherit;margin:.5em 0 0;color:var(--ink-2);font-size:.9rem}
+.checkline{display:flex;gap:.6em;align-items:flex-start;font-weight:400;font-size:.88rem;background:#f8fafb;border:1px solid var(--line);padding:.7em;border-radius:8px}
+.checkline input{width:auto;margin-top:.2em}
+.legal{max-height:140px;overflow:auto;font-size:.8rem;color:var(--ink-2);background:#fafbfc;border:1px solid var(--line);border-radius:8px;padding:.6em .8em;margin-bottom:.6em}
+.demo-box{background:var(--brand-50);border:1px dashed var(--brand);border-radius:10px;padding:.8em 1em;font-size:.88rem}
+code{background:#eef1f5;padding:.1em .35em;border-radius:4px;font-size:.88em}
+@media (max-width:900px){
+  .topbar{position:static} .topbar .in{flex-wrap:wrap;gap:.5em} .topbar nav{margin-left:0;width:100%;flex-wrap:nowrap;overflow-x:auto;padding-bottom:.2em}
+  .topbar nav .btn{white-space:nowrap}
+  #fo{grid-template-columns:1fr!important} .job{flex-direction:column} .job .btn{width:100%;justify-content:center}
+  .hero .in{grid-template-columns:1fr} .feat{grid-template-columns:1fr}
+  .app{grid-template-columns:1fr} .side{position:fixed;inset:0 30% 0 0;z-index:60;transform:translateX(-105%);transition:transform .2s;height:100%}
+  .side.open{transform:none} .menu-btn{display:inline-flex}
+  .main{padding:1em} .kpis{grid-template-columns:repeat(2,1fr)} .cols{grid-template-columns:1fr}
+  .filters{grid-template-columns:1fr 1fr} .grid2,.grid3{grid-template-columns:1fr}
+  .hide-m{display:none}
+  .dl{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="tip" id="tip"></div>
+<script>
+"use strict";
+/* =====================================================================
+   TalentoLink – Prototipo funcional (MVP del módulo empresarial)
+   Arquitectura: SPA en HTML/CSS/JavaScript sin dependencias.
+   Persistencia: IndexedDB del navegador (con respaldo en memoria).
+   ===================================================================== */
+
+const VERSION = "1.0.0";
+const ESTADOS = [
+  {k:"recibido",   t:"Recibido"},
+  {k:"revision",   t:"En revisión"},
+  {k:"entrevista", t:"Entrevista"},
+  {k:"descartado", t:"Descartado"},
+  {k:"contratado", t:"Contratado"}
+];
+const ESTUDIOS = ["Bachiller","Técnico","Tecnólogo","Profesional","Especialización","Maestría"];
+const CIUDADES = ["Bogotá","Soacha","Chía","Medellín","Cali","Barranquilla","Bucaramanga","Pereira","Zipaquirá","Mosquera"];
+const SECTORES = ["Comercio","Servicios","Manufactura","Tecnología"];
+const MODALIDADES = ["Presencial","Híbrido","Remoto"];
+const MAX_PDF = 2 * 1024 * 1024; // 2 MB (riesgo R9)
+const POLITICA_VERSION = "PTD-2026-01";
+const DIA = 86400000;
+
+/* ---------- Utilidades ---------- */
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const h = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = n => n==null||n==="" ? "—" : "$ " + Number(n).toLocaleString("es-CO");
+const fecha = t => new Date(typeof t==="string" && /^\d{4}-\d{2}-\d{2}$/.test(t) ? t+"T00:00" : t).toLocaleDateString("es-CO",{day:"2-digit",month:"short",year:"numeric"});
+const fechaHora = t => new Date(t).toLocaleString("es-CO",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+const estadoTxt = k => (ESTADOS.find(e=>e.k===k)||{}).t || k;
+const badge = k => `<span class="badge b-${k}">${h(estadoTxt(k))}</span>`;
+const vBadge = k => `<span class="badge b-${k}">${({abierta:"Abierta",pausada:"Pausada",cerrada:"Cerrada"})[k]}</span>`;
+const radicado = p => "TL-" + new Date(p.creada).getFullYear() + "-" + String(p.id).padStart(6,"0");
+const emailOk = s => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
+const rnd = a => a[Math.floor(Math.random()*a.length)];
+
+function confirmar(msg, ok="Confirmar"){
+  return new Promise(res=>{
+    const m=document.createElement("div"); m.className="modal-bg"; m.id="cdlg";
+    m.innerHTML=`<div class="modal" role="alertdialog" aria-modal="true" style="width:min(460px,100%);margin-top:15vh"><div class="mb"><p style="font-size:1rem">${h(msg)}</p>
+      <div style="display:flex;gap:.5em;justify-content:flex-end"><button class="btn" id="cno">Cancelar</button><button class="btn primary" id="csi">${h(ok)}</button></div></div></div>`;
+    document.body.appendChild(m);
+    const fin=v=>{m.remove();res(v);};
+    $("#cno",m).onclick=()=>fin(false); $("#csi",m).onclick=()=>fin(true); $("#csi",m).focus();
+  });
+}
+const enMarco = (()=>{ try{ return window.top!==window.self; }catch(e){ return true; } })();
+let DL = null; // capacidad de descargas del visor de enlaces (si existe)
+(async()=>{ try{ if(window.claude && typeof window.claude.use==="function") DL = await window.claude.use("downloads"); }catch(e){} })();
+async function descargar(nombre, blob){
+  if(DL){ try{ await DL.save({filename:nombre, data:blob}); toast("Archivo descargado: "+nombre); }catch(e){ if(e && e.code!=="declined") toast("No se pudo descargar el archivo en este visor."); } return true; }
+  if(enMarco) return false;
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+  return true;
+}
+function toast(msg){
+  const t = document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(), 3200);
+}
+
+async function hash(txt){
+  try{
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(txt));
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }catch(e){ // respaldo si SubtleCrypto no está disponible
+    let x=5381; for(const c of txt) x=((x<<5)+x+c.charCodeAt(0))|0; return "f"+(x>>>0).toString(16);
+  }
+}
+const salt = () => Math.random().toString(36).slice(2,10);
+
+/* ---------- Persistencia (IndexedDB) ---------- */
+const Store = {
+  db:null, mem:new Map(), ok:false,
+  open(){
+    return new Promise(res=>{
+      try{
+        const r = indexedDB.open("talentolink", 1);
+        r.onupgradeneeded = () => r.result.createObjectStore("kv");
+        r.onsuccess = () => { this.db=r.result; this.ok=true; res(); };
+        r.onerror = () => res();
+      }catch(e){ res(); }
+    });
+  },
+  get(k){
+    if(!this.ok) return Promise.resolve(this.mem.get(k));
+    return new Promise(res=>{ const q=this.db.transaction("kv").objectStore("kv").get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>res(undefined); });
+  },
+  set(k,v){
+    if(!this.ok){ this.mem.set(k,v); return Promise.resolve(); }
+    return new Promise(res=>{ const tx=this.db.transaction("kv","readwrite"); tx.objectStore("kv").put(v,k); tx.oncomplete=()=>res(); tx.onerror=()=>res(); });
+  },
+  del(k){
+    if(!this.ok){ this.mem.delete(k); return Promise.resolve(); }
+    return new Promise(res=>{ const tx=this.db.transaction("kv","readwrite"); tx.objectStore("kv").delete(k); tx.oncomplete=()=>res(); });
+  },
+  clear(){
+    if(!this.ok){ this.mem.clear(); return Promise.resolve(); }
+    return new Promise(res=>{ const tx=this.db.transaction("kv","readwrite"); tx.objectStore("kv").clear(); tx.oncomplete=()=>res(); });
+  }
+};
+
+let DB = null;
+let saveTimer = null;
+function save(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>Store.set("db", DB), 150); }
+const nextId = () => ++DB.seq;
+
+/* ---------- Sesión ---------- */
+const SESSION_MIN = 30;
+let SESSION = null;
+function loadSession(){
+  try{ const s = JSON.parse(sessionStorage.getItem("tl_session")||"null"); if(s && Date.now()-s.t < SESSION_MIN*60000) SESSION=s; }catch(e){}
+}
+function touchSession(){ if(SESSION){ SESSION.t=Date.now(); try{sessionStorage.setItem("tl_session",JSON.stringify(SESSION));}catch(e){} } }
+function setSession(u){ SESSION = u ? {uid:u.id, t:Date.now()} : null; try{ u ? sessionStorage.setItem("tl_session",JSON.stringify(SESSION)) : sessionStorage.removeItem("tl_session"); }catch(e){} }
+const me = () => SESSION && DB.usuarios.find(u=>u.id===SESSION.uid);
+const myCo = () => { const u=me(); return u && DB.empresas.find(e=>e.id===u.empresaId); };
+const isAdmin = () => me()?.rol==="admin";
+const loginFails = {}; // bloqueo temporal por intentos fallidos
+
+/* ---------- Generador de PDF mínimo (hojas de vida de ejemplo) ---------- */
+function makePdf(title, lines){
+  const esc = s => String(s).replace(/[\\()]/g, m=>"\\"+m).replace(/[^\x20-\xFF]/g,"?");
+  let y = 750, stream = `BT /F2 20 Tf 60 ${y} Td (${esc(title)}) Tj ET\n`;
+  y -= 14; stream += `0.05 0.42 0.43 RG 2 w 60 ${y} m 552 ${y} l S\n`; y -= 26;
+  for(const ln of lines){
+    if(ln.startsWith("#")){ y-=8; stream += `BT /F2 13 Tf 60 ${y} Td (${esc(ln.slice(1))}) Tj ET\n`; y-=20; }
+    else { stream += `BT /F1 11 Tf 60 ${y} Td (${esc(ln)}) Tj ET\n`; y-=17; }
+  }
+  stream += `BT /F1 8 Tf 60 40 Td (Documento de ejemplo generado por el prototipo TalentoLink v${VERSION}.) Tj ET\n`;
+  const objs = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>",
+    `<< /Length ${stream.length} >>\nstream\n${stream}endstream`
+  ];
+  let out = "%PDF-1.4\n", offs=[];
+  objs.forEach((o,i)=>{ offs.push(out.length); out += `${i+1} 0 obj\n${o}\nendobj\n`; });
+  const xref = out.length;
+  out += `xref\n0 ${objs.length+1}\n0000000000 65535 f \n` + offs.map(o=>String(o).padStart(10,"0")+" 00000 n \n").join("");
+  out += `trailer\n<< /Size ${objs.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  const bytes = new Uint8Array(out.length); for(let i=0;i<out.length;i++) bytes[i]=out.charCodeAt(i)&255;
+  return new Blob([bytes], {type:"application/pdf"});
+}
+function cvPdf(p){
+  const v = DB.vacantes.find(x=>x.id===p.vacanteId);
+  return makePdf("Hoja de vida - " + p.nombre, [
+    "#Datos personales",
+    "Documento: CC " + p.documento, "Correo: " + p.correo, "Teléfono: " + p.telefono, "Ciudad: " + p.ciudad,
+    "#Perfil",
+    `Aspirante al cargo de ${v ? v.titulo : "-"} con ${p.experiencia} año(s) de experiencia.`,
+    "Nivel de estudios: " + p.estudios, "Aspiración salarial: " + money(p.aspiracion),
+    "#Experiencia laboral",
+    p.experiencia>0 ? `Experiencia acumulada de ${p.experiencia} año(s) en cargos relacionados.` : "Sin experiencia laboral certificada.",
+    "#Formación",
+    p.estudios + " - Institución de educación colombiana."
+  ]);
+}
+
+/* ---------- Correos (simulados) ---------- */
+function correo(para, asunto, cuerpo, tipo, empresaId, postId){
+  DB.correos.unshift({id:nextId(), para, asunto, cuerpo, tipo, empresaId, postId, fecha:Date.now(), leido:false});
+}
+function notificarPostulacion(p){
+  const v = DB.vacantes.find(x=>x.id===p.vacanteId), e = DB.empresas.find(x=>x.id===v.empresaId);
+  correo(p.correo, `Recibimos tu postulación a ${v.titulo}`,
+`Hola ${p.nombre}:
+
+${e.nombre} recibió tu hoja de vida para la vacante "${v.titulo}".
+Número de radicado: ${radicado(p)}
+
+Puedes consultar el estado de tu proceso en TalentoLink > Consultar mi proceso, con tu radicado y tu número de documento.
+Tus datos se tratan según la política ${POLITICA_VERSION} (Ley 1581 de 2012).`, "aspirante", e.id, p.id);
+  DB.usuarios.filter(u=>u.empresaId===e.id).forEach(u=>
+    correo(u.correo, `Nueva postulación: ${p.nombre} – ${v.titulo}`,
+`Hola ${u.nombre}:
+
+Llegó una nueva hoja de vida para "${v.titulo}".
+Candidato: ${p.nombre} · ${p.ciudad} · ${p.experiencia} año(s) de experiencia · ${p.estudios}.
+Revísala en la bandeja de candidatos.`, "empresa", e.id, p.id));
+}
+function notificarEstado(p, nota){
+  const v = DB.vacantes.find(x=>x.id===p.vacanteId), e = DB.empresas.find(x=>x.id===v.empresaId);
+  const msgs = {
+    revision: "Tu hoja de vida está siendo revisada por el equipo de selección.",
+    entrevista: p.entrevista ? `Queremos conocerte. Te esperamos el ${fecha(p.entrevista.fecha)} a las ${p.entrevista.hora} (${p.entrevista.lugar}).` : "Fuiste preseleccionado para entrevista. Pronto te contactaremos.",
+    descartado: "Agradecemos tu interés. En esta ocasión continuaremos con otros perfiles. Conservaremos tu hoja de vida para futuras vacantes si así lo autorizaste.",
+    contratado: "¡Felicitaciones! Fuiste seleccionado. El área de talento humano te contactará para los siguientes pasos.",
+    recibido: "Tu postulación fue recibida."
+  };
+  correo(p.correo, `Actualización de tu proceso: ${v.titulo}`,
+`Hola ${p.nombre}:
+
+${msgs[p.estado]}
+${nota ? "\nMensaje de la empresa: " + nota + "\n" : ""}
+Radicado: ${radicado(p)} · ${e.nombre}`, "aspirante", e.id, p.id);
+}
+
+/* ---------- Datos de demostración ---------- */
+const NOMBRES = ["Laura","Andrés","Valentina","Juan Camilo","Daniela","Santiago","María José","Carlos","Natalia","Sebastián","Paula","Felipe","Camila","Diego","Juliana","Alejandro","Manuela","Jorge","Sara","David","Luisa","Mateo","Angélica","Esteban","Carolina","Óscar","Diana","Nicolás","Lorena","Cristian"];
+const APELLIDOS = ["Gómez","Rodríguez","Martínez","López","García","Hernández","Ramírez","Torres","Castro","Rojas","Moreno","Vargas","Jiménez","Suárez","Ortiz","Peña","Cárdenas","Mejía","Salazar","Rincón","Galeano","Muñoz","Pardo","Quintero","Beltrán"];
+function persona(i){
+  const n = rnd(NOMBRES), a1 = rnd(APELLIDOS), a2 = rnd(APELLIDOS);
+  const user = (n.split(" ")[0]+"."+a1).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  return { nombre:`${n} ${a1} ${a2}`, correo:`${user}${i}@correo.co`, documento:String(1000000000+Math.floor(Math.random()*99999999)), telefono:"3"+String(100000000+Math.floor(Math.random()*899999999)) };
+}
+function nuevaPost(v, i, overrides={}){
+  const per = persona(i);
+  const exp = Math.max(0, Math.round(v.experienciaMin + (Math.random()*6-2)));
+  const minE = ESTUDIOS.indexOf(v.estudios);
+  const est = ESTUDIOS[Math.min(ESTUDIOS.length-1, Math.max(0, minE + Math.floor(Math.random()*3)-1))];
+  const asp = Math.round((v.salarioMin + Math.random()*(v.salarioMax - v.salarioMin)*1.3) / 50000) * 50000;
+  const creada = overrides.creada || (v.creada + Math.random()*Math.max(DIA, (Math.min(Date.now(), v.cerrada||Date.now()) - v.creada)));
+  return Object.assign({
+    id: nextId(), vacanteId:v.id, ...per,
+    ciudad: Math.random()<.6 ? v.ciudad : rnd(CIUDADES), experiencia:exp, estudios:est, aspiracion:asp,
+    mensaje:"", archivoId:null, archivoNombre:"hoja_de_vida.pdf",
+    autorizacion:{acepta:true, fecha:creada, version:POLITICA_VERSION, finalidad:"Proceso de selección"},
+    estado:"recibido", historial:[{estado:"recibido", fecha:creada, usuario:"Sistema", nota:"Postulación recibida desde la página pública"}],
+    entrevista:null, creada
+  }, overrides);
+}
+function mover(p, estado, t, usuario, nota){ p.estado=estado; p.historial.push({estado, fecha:t, usuario, nota:nota||""}); }
+
+async function seed(){
+  DB = {seq:100, empresas:[], usuarios:[], vacantes:[], postulaciones:[], correos:[], creado:Date.now(), version:VERSION};
+  const now = Date.now();
+  const e = {id:nextId(), nombre:"Comercializadora Andina S.A.S.", nit:"901.234.567-8", sector:"Comercio", ciudad:"Bogotá", creada: now-60*DIA};
+  DB.empresas.push(e);
+  for(const [nombre, correoU, rol] of [["Marcela Ruiz","admin@andina.co","admin"],["Julián Prieto","reclutador@andina.co","reclutador"]]){
+    const s = salt(); DB.usuarios.push({id:nextId(), empresaId:e.id, nombre, correo:correoU, rol, salt:s, hash:await hash(s+"Demo2026*"), creado:now-60*DIA});
+  }
+  const V = (titulo, ciudad, modalidad, smin, smax, exp, est, dias, estado, cierre, desc, req) => {
+    const v = {id:nextId(), empresaId:e.id, titulo, ciudad, modalidad, salarioMin:smin, salarioMax:smax, experienciaMin:exp, estudios:est,
+      descripcion:desc, requisitos:req, estado, creada:now-dias*DIA, cerrada: cierre ? now-cierre*DIA : null, vacantes:1};
+    DB.vacantes.push(v); return v;
+  };
+  const v1 = V("Auxiliar contable","Bogotá","Presencial",1800000,2400000,1,"Tecnólogo",21,"abierta",null,
+    "Apoyar el registro de facturas, conciliaciones bancarias y causación de nómina en el área contable.",
+    "Tecnólogo en contabilidad o afines.\nManejo de Excel intermedio y software contable (Siigo o World Office).\nMínimo 1 año de experiencia.");
+  const v2 = V("Asesor comercial","Bogotá","Presencial",1423500,2000000,1,"Bachiller",14,"abierta",null,
+    "Atender clientes en punto de venta y por canales digitales, cumplir metas de ventas y hacer seguimiento a la cartera.",
+    "Bachiller con experiencia en ventas.\nExcelente comunicación y orientación al servicio.\nDisponibilidad para trabajar sábados.");
+  const v3 = V("Desarrollador web junior","Bogotá","Remoto",3000000,4200000,1,"Profesional",9,"abierta",null,
+    "Mantener la tienda en línea y los tableros internos de la empresa.",
+    "Profesional o tecnólogo en sistemas.\nHTML, CSS, JavaScript y bases de datos SQL.\nDeseable conocimiento en Git.");
+  const v4 = V("Auxiliar de bodega","Soacha","Presencial",1423500,1700000,0,"Bachiller",48,"cerrada",22,
+    "Recibir, almacenar y despachar mercancía; control de inventarios.",
+    "Bachiller.\nDisponibilidad de horario.\nDeseable curso de montacargas.");
+  const v5 = V("Analista de talento humano","Bogotá","Híbrido",2800000,3500000,2,"Profesional",5,"pausada",null,
+    "Liderar procesos de selección, inducción y bienestar.",
+    "Profesional en psicología o administración.\nMínimo 2 años en selección de personal.");
+  let i=0;
+  const plan = [[v1,9],[v2,11],[v3,7],[v4,8],[v5,3]];
+  for(const [v,n] of plan){
+    for(let k=0;k<n;k++){
+      const p = nuevaPost(v, ++i);
+      const r = Math.random();
+      const t1 = p.creada + DIA*(1+Math.random()*2), t2 = t1 + DIA*(1+Math.random()*3), t3 = t2 + DIA*(2+Math.random()*3);
+      const cap = x => Math.min(x, now - 3600000);
+      if(v===v4){ // vacante cerrada: proceso completo
+        mover(p,"revision",cap(t1),"Marcela Ruiz");
+        if(k===0){ mover(p,"entrevista",cap(t2),"Marcela Ruiz"); mover(p,"contratado",cap(t3),"Marcela Ruiz","Seleccionado por experiencia en inventarios."); }
+        else if(k<3){ mover(p,"entrevista",cap(t2),"Marcela Ruiz"); mover(p,"descartado",cap(t3),"Marcela Ruiz"); }
+        else mover(p,"descartado",cap(t2),"Julián Prieto","No cumple disponibilidad de horario.");
+      } else if(r<.35){ /* queda recibido */ }
+      else if(r<.6){ mover(p,"revision",cap(t1),"Julián Prieto"); }
+      else if(r<.8){ mover(p,"revision",cap(t1),"Julián Prieto"); mover(p,"entrevista",cap(t2),"Marcela Ruiz");
+        const d = new Date(now + DIA*(1+Math.floor(Math.random()*6))); p.entrevista={fecha:d.toISOString().slice(0,10), hora:rnd(["09:00","10:30","14:00","15:30"]), lugar:rnd(["Sede Chapinero, Cra 13 # 54-20","Videollamada (Google Meet)"])}; }
+      else { mover(p,"revision",cap(t1),"Julián Prieto"); mover(p,"descartado",cap(t2),"Julián Prieto","Perfil no ajustado a los requisitos."); }
+      DB.postulaciones.push(p);
+    }
+  }
+  // Bandeja de correos de ejemplo (últimas postulaciones)
+  DB.postulaciones.slice().sort((a,b)=>a.creada-b.creada).slice(-6).forEach(notificarPostulacion);
+  DB.correos.forEach(c=>c.leido=true);
+  await Store.set("db", DB);
+}
+
+/* ---------- Router ---------- */
+const PRIVADAS = ["panel","vacantes","candidatos","reportes","notificaciones","usuarios","empresa"];
+function route(){ const hsh = location.hash.replace(/^#\/?/,""); const [path, qs] = hsh.split("?"); return {parts:path.split("/").filter(Boolean), q:new URLSearchParams(qs||"")}; }
+function go(path){ location.hash = "#/" + path; }
+
+async function render(){
+  closeModal();
+  const {parts, q} = route();
+  const r = parts[0] || "";
+  if(PRIVADAS.includes(r)){
+    if(SESSION && Date.now()-SESSION.t > SESSION_MIN*60000){ setSession(null); toast("La sesión expiró por inactividad."); }
+    if(!me()) return go("login");
+    touchSession();
+    const soloAdmin = ["usuarios","empresa"].includes(r) || (r==="vacantes" && (parts[1]==="nueva" || parts[2]==="editar"));
+    if(soloAdmin && !isAdmin()){ toast("Tu rol (reclutador) no tiene permiso para esta opción."); return go("panel"); }
+    const views = {panel:vPanel, vacantes:vVacantes, candidatos:vCandidatos, reportes:vReportes, notificaciones:vNotif, usuarios:vUsuarios, empresa:vEmpresa};
+    shell(r, await views[r](parts, q));
+  } else {
+    const views = {"":vInicio, ofertas:vOfertas, oferta:vOferta, consulta:vConsulta, login:vLogin, registro:vRegistro, privacidad:vPrivacidad};
+    const fn = views[r] || vInicio;
+    publicShell(await fn(parts, q));
+  }
+  window.scrollTo(0,0);
+  bindAfter.forEach(f=>f()); bindAfter = [];
+}
+let bindAfter = [];
+const after = f => bindAfter.push(f);
+
+function publicShell(inner){
+  const u = me();
+  $("#root").innerHTML = `
+  <header class="topbar"><div class="in">
+    <a class="logo" href="#/"><span class="mk">TL</span><span>Talento<b>Link</b></span></a>
+    <nav>
+      <a class="btn ghost sm" href="#/ofertas">Ofertas de empleo</a>
+      <a class="btn ghost sm" href="#/consulta">Consultar mi proceso</a>
+      ${u ? `<a class="btn primary sm" href="#/panel">Ir a mi panel</a>` :
+        `<a class="btn sm" href="#/login">Iniciar sesión</a><a class="btn primary sm" href="#/registro">Registrar empresa</a>`}
+    </nav></div></header>
+  ${inner}
+  <div class="foot">TalentoLink · Prototipo funcional v${VERSION} · Corporación Universitaria Iberoamericana · <a href="#/privacidad">Política de tratamiento de datos</a></div>`;
+}
+
+function shell(active, inner){
+  const u = me(), e = myCo();
+  const unread = DB.correos.filter(c=>c.empresaId===e.id && !c.leido).length;
+  const item = (k, ico, txt, extra="") => `<a class="nav ${active===k?"on":""}" href="#/${k}"><span class="ico">${ico}</span>${txt}${extra}</a>`;
+  $("#root").innerHTML = `
+  <div class="app">
+    <aside class="side" id="side">
+      <a class="logo" href="#/panel"><span class="mk">TL</span><span>Talento<b>Link</b></span></a>
+      ${item("panel","▦","Panel")}
+      ${item("vacantes","▤","Vacantes")}
+      ${item("candidatos","☰","Candidatos")}
+      ${item("reportes","▥","Reportes")}
+      ${item("notificaciones","✉","Notificaciones", unread?`<span class="pill">${unread}</span>`:"")}
+      ${isAdmin() ? item("usuarios","☺","Usuarios y roles") + item("empresa","⚙","Empresa y datos") : ""}
+      <a class="nav" href="#/ofertas" target="_self"><span class="ico">↗</span>Ver portal público</a>
+      <div class="who"><b>${h(u.nombre)}</b>${h(e.nombre)}<br><span class="muted">Rol: ${u.rol==="admin"?"Administrador":"Reclutador"}</span>
+        <div style="margin-top:.6em"><button class="btn sm" id="logout">Cerrar sesión</button></div></div>
+    </aside>
+    <main class="main">
+      <button class="btn sm menu-btn" id="menu" aria-label="Abrir menú">☰ Menú</button>
+      ${inner}
+    </main>
+  </div>`;
+  $("#logout").onclick = () => { setSession(null); toast("Sesión cerrada."); go("login"); };
+  $("#menu").onclick = () => $("#side").classList.toggle("open");
+}
+
+/* =====================================================================
+   VISTAS PÚBLICAS
+   ===================================================================== */
+function vInicio(){
+  const abiertas = DB.vacantes.filter(v=>v.estado==="abierta").length;
+  return `
+  <section class="hero"><div class="in">
+    <div>
+      <h1>Recibe, filtra y gestiona hojas de vida en un solo lugar</h1>
+      <p>TalentoLink reemplaza el correo y el WhatsApp en el reclutamiento de las pymes colombianas: publica vacantes, recibe postulaciones estructuradas y haz seguimiento a cada candidato.</p>
+      <p style="display:flex;gap:.6em;flex-wrap:wrap;margin-top:1.2em">
+        <a class="btn" href="#/registro">Registrar mi empresa</a>
+        <a class="btn alt" href="#/ofertas">Ver ${abiertas} ofertas abiertas</a>
+      </p>
+    </div>
+    <div class="mock">
+      <div class="small muted" style="margin-bottom:.5em">Vista previa · Bandeja de candidatos</div>
+      <table><tbody>
+        <tr><td>Laura Gómez</td><td class="small muted">3 años · Tecnólogo</td><td>${badge("entrevista")}</td></tr>
+        <tr><td>Andrés Torres</td><td class="small muted">1 año · Profesional</td><td>${badge("revision")}</td></tr>
+        <tr><td>Daniela Rojas</td><td class="small muted">5 años · Tecnólogo</td><td>${badge("recibido")}</td></tr>
+        <tr><td>Jorge Peña</td><td class="small muted">2 años · Técnico</td><td>${badge("contratado")}</td></tr>
+      </tbody></table>
+    </div>
+  </div></section>
+  <div class="wrap">
+    <div class="feat">
+      <div class="card"><h3>Vacantes con requisitos claros</h3><p class="muted">Publica, edita, pausa y cierra ofertas. Cada vacante tiene su página pública y su enlace para compartir en redes.</p></div>
+      <div class="card"><h3>Filtros en segundos</h3><p class="muted">Filtra por experiencia, nivel de estudios, ciudad y aspiración salarial, y mueve a cada candidato por las etapas del proceso.</p></div>
+      <div class="card"><h3>Cumplimiento de la Ley 1581</h3><p class="muted">Cada postulación registra la autorización de tratamiento de datos con fecha y versión de la política.</p></div>
+    </div>
+    <div class="demo-box" style="margin-top:1.5em">
+      <b>Acceso de demostración del prototipo.</b> Administrador: <code>admin@andina.co</code> · Reclutador: <code>reclutador@andina.co</code> · Contraseña de ambos: <code>Demo2026*</code>
+    </div>
+  </div>`;
+}
+
+function vOfertas(parts, q){
+  const txt = (q.get("q")||"").toLowerCase(), ciu = q.get("ciudad")||"";
+  const list = DB.vacantes.filter(v=>v.estado==="abierta")
+    .filter(v=>!txt || (v.titulo+" "+v.descripcion).toLowerCase().includes(txt))
+    .filter(v=>!ciu || v.ciudad===ciu).sort((a,b)=>b.creada-a.creada);
+  after(()=>{ $("#fo").onsubmit = ev => { ev.preventDefault(); const p=new URLSearchParams(); if($("#fq").value) p.set("q",$("#fq").value); if($("#fc").value) p.set("ciudad",$("#fc").value); go("ofertas?"+p); }; });
+  return `<div class="wrap">
+    <h1>Ofertas de empleo</h1><p class="muted">Vacantes publicadas por las empresas registradas en TalentoLink.</p>
+    <form id="fo" class="card" style="display:grid;grid-template-columns:2fr 1fr auto;gap:.6em;margin-bottom:1em">
+      <input id="fq" placeholder="Cargo o palabra clave" value="${h(q.get("q")||"")}" aria-label="Buscar">
+      <select id="fc" aria-label="Ciudad"><option value="">Todas las ciudades</option>${[...new Set(DB.vacantes.map(v=>v.ciudad))].map(c=>`<option ${c===ciu?"selected":""}>${h(c)}</option>`).join("")}</select>
+      <button class="btn primary">Buscar</button>
+    </form>
+    <div class="joblist">${list.map(v=>{ const e=DB.empresas.find(x=>x.id===v.empresaId); return `
+      <div class="card job"><div style="flex:1">
+        <h3 style="margin:0"><a href="#/oferta/${v.id}">${h(v.titulo)}</a></h3>
+        <div class="meta"><span>${h(e.nombre)}</span><span>📍 ${h(v.ciudad)} · ${h(v.modalidad)}</span><span>💰 ${money(v.salarioMin)} – ${money(v.salarioMax)}</span><span>Publicada ${fecha(v.creada)}</span></div>
+        <div class="muted small">${h(v.descripcion)}</div></div>
+        <a class="btn primary" href="#/oferta/${v.id}">Postularme</a></div>`;}).join("") || `<div class="card empty">No hay ofertas que coincidan con la búsqueda.</div>`}
+    </div></div>`;
+}
+
+function vOferta(parts){
+  const v = DB.vacantes.find(x=>x.id===+parts[1]);
+  if(!v) return `<div class="wrap"><div class="card empty">La oferta no existe.</div></div>`;
+  const e = DB.empresas.find(x=>x.id===v.empresaId);
+  const abierta = v.estado==="abierta";
+  after(()=>{ if(abierta) bindPostulacion(v); });
+  return `<div class="wrap">
+    <p><a href="#/ofertas">← Volver a las ofertas</a></p>
+    <div class="cols">
+      <div class="card">
+        <div style="display:flex;gap:.6em;align-items:center;flex-wrap:wrap"><h1 style="margin:0">${h(v.titulo)}</h1>${vBadge(v.estado)}</div>
+        <p class="muted" style="margin-top:.3em">${h(e.nombre)} · ${h(e.sector)}</p>
+        <dl class="dl">
+          <dt>Ciudad</dt><dd>${h(v.ciudad)}</dd><dt>Modalidad</dt><dd>${h(v.modalidad)}</dd>
+          <dt>Salario</dt><dd>${money(v.salarioMin)} – ${money(v.salarioMax)}</dd>
+          <dt>Experiencia mínima</dt><dd>${v.experienciaMin} año(s)</dd><dt>Estudios mínimos</dt><dd>${h(v.estudios)}</dd>
+          <dt>Publicada</dt><dd>${fecha(v.creada)}</dd>
+        </dl>
+        <h3 style="margin-top:1.2em">Descripción</h3><p>${h(v.descripcion)}</p>
+        <h3>Requisitos</h3><ul>${v.requisitos.split("\n").filter(Boolean).map(r=>`<li>${h(r)}</li>`).join("")}</ul>
+      </div>
+      <div class="card" id="postbox">
+        ${abierta ? formPostulacion(v) : `<h2>Esta vacante no recibe postulaciones</h2><p class="muted">La empresa ${v.estado==="pausada"?"pausó temporalmente":"cerró"} esta convocatoria.</p>`}
+      </div>
+    </div></div>`;
+}
+
+function formPostulacion(v){
+  return `<h2>Postúlate</h2><p class="muted small">Todos los campos con * son obligatorios.</p>
+  <div id="perr"></div>
+  <form id="fp" novalidate>
+    <div class="field"><label for="pn">Nombre completo *</label><input id="pn" autocomplete="name"></div>
+    <div class="grid2">
+      <div class="field"><label for="pd">Documento (CC) *</label><input id="pd" inputmode="numeric"></div>
+      <div class="field"><label for="pt">Celular *</label><input id="pt" inputmode="tel"></div>
+    </div>
+    <div class="field"><label for="pc">Correo electrónico *</label><input id="pc" type="email" autocomplete="email"></div>
+    <div class="grid2">
+      <div class="field"><label for="pci">Ciudad de residencia *</label><select id="pci"><option value="">Seleccione…</option>${CIUDADES.map(c=>`<option>${c}</option>`).join("")}</select></div>
+      <div class="field"><label for="pe">Años de experiencia *</label><input id="pe" type="number" min="0" max="50"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="pes">Nivel de estudios *</label><select id="pes"><option value="">Seleccione…</option>${ESTUDIOS.map(c=>`<option>${c}</option>`).join("")}</select></div>
+      <div class="field"><label for="pa">Aspiración salarial (COP) *</label><input id="pa" type="number" min="0" step="50000"></div>
+    </div>
+    <div class="field"><label for="pf">Hoja de vida en PDF * <span class="hint">(máximo 2 MB)</span></label><input id="pf" type="file" accept="application/pdf,.pdf"></div>
+    <div class="field"><label for="pm">Mensaje para la empresa <span class="hint">(opcional)</span></label><textarea id="pm" maxlength="500" style="min-height:60px"></textarea></div>
+    <div class="legal">${textoPolitica(DB.empresas.find(x=>x.id===v.empresaId))}</div>
+    <label class="checkline"><input type="checkbox" id="pok"> <span>Autorizo de manera previa, expresa e informada el tratamiento de mis datos personales para este proceso de selección, conforme a la Ley 1581 de 2012 y a la política <b>${POLITICA_VERSION}</b>. *</span></label>
+    <button class="btn primary" style="margin-top:1em;width:100%;justify-content:center" id="pbtn">Enviar postulación</button>
+  </form>`;
+}
+
+function textoPolitica(e){
+  return `<b>Aviso de privacidad – ${h(e?e.nombre:"la empresa")}</b><br>
+  Responsable: ${h(e?e.nombre:"la empresa")} (NIT ${h(e?e.nit:"")}). Encargado: TalentoLink.<br>
+  Finalidad: evaluar tu perfil para esta vacante, contactarte durante el proceso y, si lo autorizas, conservar tu hoja de vida para futuras vacantes por un máximo de 2 años.<br>
+  Derechos: conocer, actualizar, rectificar y suprimir tus datos, y revocar esta autorización (art. 8, Ley 1581 de 2012), escribiendo al correo de la empresa.<br>
+  Los datos no se venden ni se comparten con terceros ajenos al proceso.`;
+}
+
+async function leerArchivo(f){ return new Uint8Array(await f.arrayBuffer()); }
+
+function bindPostulacion(v){
+  $("#fp").onsubmit = async ev => {
+    ev.preventDefault();
+    const val = id => $(id).value.trim();
+    const errs = [];
+    const d = {nombre:val("#pn"), documento:val("#pd").replace(/\D/g,""), telefono:val("#pt").replace(/\D/g,""), correo:val("#pc").toLowerCase(),
+      ciudad:val("#pci"), experiencia:val("#pe"), estudios:val("#pes"), aspiracion:val("#pa"), mensaje:val("#pm")};
+    if(d.nombre.split(/\s+/).length<2) errs.push("Escribe tu nombre y al menos un apellido.");
+    if(!/^\d{6,10}$/.test(d.documento)) errs.push("El documento debe tener entre 6 y 10 dígitos.");
+    if(!/^3\d{9}$/.test(d.telefono)) errs.push("El celular debe tener 10 dígitos y empezar por 3.");
+    if(!emailOk(d.correo)) errs.push("El correo electrónico no es válido.");
+    if(!d.ciudad) errs.push("Selecciona tu ciudad.");
+    if(d.experiencia==="" || +d.experiencia<0 || +d.experiencia>50) errs.push("Indica tus años de experiencia (0 a 50).");
+    if(!d.estudios) errs.push("Selecciona tu nivel de estudios.");
+    if(!(+d.aspiracion>0)) errs.push("Indica tu aspiración salarial.");
+    const f = $("#pf").files[0];
+    let bytes = null;
+    if(!f) errs.push("Adjunta tu hoja de vida en PDF.");
+    else {
+      if(f.size > MAX_PDF) errs.push("El archivo supera el tamaño máximo de 2 MB.");
+      else { bytes = await leerArchivo(f);
+        const head = String.fromCharCode(...bytes.slice(0,5));
+        if(head!=="%PDF-" || !/\.pdf$/i.test(f.name)) errs.push("El archivo no es un PDF válido. Solo se aceptan documentos PDF.");
+      }
+    }
+    if(!$("#pok").checked) errs.push("Debes autorizar el tratamiento de datos personales para postularte.");
+    if(DB.postulaciones.some(p=>p.vacanteId===v.id && p.documento===d.documento)) errs.push("Ya existe una postulación con este documento para esta vacante.");
+    if(errs.length){ $("#perr").innerHTML = `<div class="alert err" role="alert"><b>Revisa el formulario:</b><ul style="margin:.3em 0 0;padding-left:1.2em">${errs.map(e=>`<li>${h(e)}</li>`).join("")}</ul></div>`; $("#perr").scrollIntoView({behavior:"smooth",block:"center"}); return; }
+    const now = Date.now(), fileId = "file:"+nextId();
+    await Store.set(fileId, new Blob([bytes],{type:"application/pdf"}));
+    const p = {id:nextId(), vacanteId:v.id, ...d, experiencia:+d.experiencia, aspiracion:+d.aspiracion,
+      archivoId:fileId, archivoNombre:f.name, autorizacion:{acepta:true, fecha:now, version:POLITICA_VERSION, finalidad:"Proceso de selección"},
+      estado:"recibido", historial:[{estado:"recibido", fecha:now, usuario:"Sistema", nota:"Postulación recibida desde la página pública"}], entrevista:null, creada:now};
+    DB.postulaciones.push(p); notificarPostulacion(p); save();
+    $("#postbox").innerHTML = `<div class="alert ok" role="status"><b>¡Postulación enviada!</b></div>
+      <p>Gracias, <b>${h(p.nombre)}</b>. Tu número de radicado es:</p>
+      <p style="font-size:1.5rem;font-weight:800;color:var(--brand)" id="rad">${radicado(p)}</p>
+      <p class="muted">Te enviamos una confirmación a ${h(p.correo)}. Con tu radicado y tu documento puedes consultar el estado de tu proceso en cualquier momento.</p>
+      <a class="btn primary" href="#/consulta?r=${radicado(p)}">Consultar mi proceso</a>`;
+  };
+}
+
+function vConsulta(parts, q){
+  after(()=>{
+    $("#fcq").onsubmit = ev => {
+      ev.preventDefault();
+      const r = $("#cr").value.trim().toUpperCase(), doc = $("#cd").value.replace(/\D/g,"");
+      const p = DB.postulaciones.find(x=>radicado(x)===r && x.documento===doc);
+      if(!p){ $("#cres").innerHTML = `<div class="alert err">No encontramos una postulación con esos datos. Verifica el radicado y el documento.</div>`; return; }
+      const v = DB.vacantes.find(x=>x.id===p.vacanteId), e = DB.empresas.find(x=>x.id===v.empresaId);
+      $("#cres").innerHTML = `<div class="card"><h2>${h(v.titulo)}</h2><p class="muted">${h(e.nombre)} · Radicado ${radicado(p)}</p>
+        <p>Estado actual: ${badge(p.estado)}</p>
+        ${p.estado==="entrevista"&&p.entrevista?`<div class="alert info">Entrevista programada: <b>${fecha(p.entrevista.fecha)} · ${h(p.entrevista.hora)}</b> · ${h(p.entrevista.lugar)}</div>`:""}
+        <h3>Historial</h3><ul class="timeline">${p.historial.map(x=>`<li><b>${h(estadoTxt(x.estado))}</b> · <span class="muted">${fechaHora(x.fecha)}</span></li>`).join("")}</ul></div>`;
+    };
+    if(q.get("r")) $("#cr").value = q.get("r");
+  });
+  return `<div class="wrap" style="max-width:720px">
+    <h1>Consultar mi proceso</h1><p class="muted">Ingresa el número de radicado que recibiste al postularte y tu número de documento.</p>
+    <form id="fcq" class="card" style="margin-bottom:1em">
+      <div class="grid2"><div class="field"><label for="cr">Radicado</label><input id="cr" placeholder="TL-2026-000123"></div>
+      <div class="field"><label for="cd">Documento</label><input id="cd" inputmode="numeric"></div></div>
+      <button class="btn primary">Consultar</button>
+    </form><div id="cres"></div></div>`;
+}
+
+function vPrivacidad(){
+  const e = DB.empresas[0];
+  return `<div class="wrap" style="max-width:800px"><div class="card"><h1>Política de tratamiento de datos personales</h1>
+  <p class="muted">Versión ${POLITICA_VERSION} · Ley 1581 de 2012 y Decreto 1377 de 2013</p>
+  <p>TalentoLink actúa como <b>encargado</b> del tratamiento; cada empresa que publica vacantes es <b>responsable</b> de los datos de sus aspirantes.</p>
+  <p>${textoPolitica(e)}</p>
+  <p>Medidas de seguridad del prototipo: contraseñas almacenadas con función hash SHA-256 y sal, control de acceso por roles, cierre de sesión por inactividad (${SESSION_MIN} minutos), bloqueo temporal tras 5 intentos fallidos de inicio de sesión, validación de formato y tamaño de los archivos y registro de la autorización (fecha y versión) en cada postulación.</p></div></div>`;
+}
+
+function vLogin(){
+  after(()=>{
+    $("#fl").onsubmit = async ev => {
+      ev.preventDefault();
+      const c = $("#lc").value.trim().toLowerCase(), pw = $("#lp").value;
+      const lf = loginFails[c] || {n:0, hasta:0};
+      if(lf.hasta > Date.now()){ $("#lerr").innerHTML = `<div class="alert err">Cuenta bloqueada temporalmente por intentos fallidos. Intenta de nuevo en ${Math.ceil((lf.hasta-Date.now())/1000)} s.</div>`; return; }
+      const u = DB.usuarios.find(x=>x.correo===c);
+      if(!u || (await hash(u.salt+pw)) !== u.hash){
+        lf.n++; if(lf.n>=5){ lf.hasta=Date.now()+60000; lf.n=0; } loginFails[c]=lf;
+        $("#lerr").innerHTML = `<div class="alert err" role="alert">Correo o contraseña incorrectos.</div>`; return;
+      }
+      loginFails[c] = {n:0,hasta:0}; setSession(u); toast(`Bienvenido(a), ${u.nombre}.`); go("panel");
+    };
+    $$("[data-demo]").forEach(b=>b.onclick=()=>{ $("#lc").value=b.dataset.demo; $("#lp").value="Demo2026*"; });
+  });
+  return `<div class="wrap" style="max-width:460px">
+    <div class="card"><h1>Iniciar sesión</h1><p class="muted">Acceso para empresas registradas.</p>
+    <div id="lerr"></div>
+    <form id="fl"><div class="field"><label for="lc">Correo</label><input id="lc" type="email" autocomplete="username"></div>
+    <div class="field"><label for="lp">Contraseña</label><input id="lp" type="password" autocomplete="current-password"></div>
+    <button class="btn primary" style="width:100%;justify-content:center">Ingresar</button></form>
+    <p class="small muted" style="margin-top:1em">¿Tu empresa no tiene cuenta? <a href="#/registro">Regístrala gratis</a></p>
+    <div class="demo-box"><b>Cuentas de demostración</b><br>
+      <button class="btn sm" data-demo="admin@andina.co" style="margin-top:.4em">Usar administrador</button>
+      <button class="btn sm" data-demo="reclutador@andina.co" style="margin-top:.4em">Usar reclutador</button>
+      <div class="small muted" style="margin-top:.3em">Contraseña: Demo2026*</div></div></div></div>`;
+}
+
+function vRegistro(){
+  after(()=>{
+    $("#fr").onsubmit = async ev => {
+      ev.preventDefault();
+      const g = id => $(id).value.trim();
+      const d = {empresa:g("#re"), nit:g("#rn"), sector:g("#rs"), ciudad:g("#rci"), nombre:g("#ra"), correo:g("#rc").toLowerCase(), pw:$("#rp").value, pw2:$("#rp2").value};
+      const errs = [];
+      if(d.empresa.length<3) errs.push("Escribe la razón social de la empresa.");
+      if(!/^\d{3}\.?\d{3}\.?\d{3}-?\d$/.test(d.nit)) errs.push("El NIT debe tener el formato 900.123.456-7.");
+      if(!d.sector) errs.push("Selecciona el sector.");
+      if(!d.ciudad) errs.push("Selecciona la ciudad.");
+      if(d.nombre.length<3) errs.push("Escribe el nombre del administrador.");
+      if(!emailOk(d.correo)) errs.push("El correo no es válido.");
+      if(DB.usuarios.some(u=>u.correo===d.correo)) errs.push("Ya existe una cuenta con ese correo.");
+      if(!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(d.pw)) errs.push("La contraseña debe tener mínimo 8 caracteres, con letras y números.");
+      if(d.pw!==d.pw2) errs.push("Las contraseñas no coinciden.");
+      if(!$("#rt").checked) errs.push("Debes aceptar los términos de uso y la política de datos.");
+      if(errs.length){ $("#rerr").innerHTML = `<div class="alert err" role="alert"><ul style="margin:0;padding-left:1.2em">${errs.map(e=>`<li>${h(e)}</li>`).join("")}</ul></div>`; return; }
+      const e = {id:nextId(), nombre:d.empresa, nit:d.nit, sector:d.sector, ciudad:d.ciudad, creada:Date.now()};
+      const s = salt(); const u = {id:nextId(), empresaId:e.id, nombre:d.nombre, correo:d.correo, rol:"admin", salt:s, hash:await hash(s+d.pw), creado:Date.now()};
+      DB.empresas.push(e); DB.usuarios.push(u);
+      correo(u.correo, "Bienvenido a TalentoLink", `Hola ${u.nombre}:\n\nLa empresa ${e.nombre} quedó registrada. Ya puedes publicar tu primera vacante.`, "empresa", e.id);
+      save(); setSession(u); toast("Empresa registrada. ¡Publica tu primera vacante!"); go("vacantes/nueva");
+    };
+  });
+  return `<div class="wrap" style="max-width:720px"><div class="card">
+    <h1>Registrar mi empresa</h1><p class="muted">Crea la cuenta de tu empresa. Quien se registra queda como administrador y luego puede invitar reclutadores.</p>
+    <div id="rerr"></div>
+    <form id="fr" novalidate>
+      <div class="grid2"><div class="field"><label for="re">Razón social *</label><input id="re"></div>
+      <div class="field"><label for="rn">NIT *</label><input id="rn" placeholder="900.123.456-7"></div></div>
+      <div class="grid2"><div class="field"><label for="rs">Sector *</label><select id="rs"><option value="">Seleccione…</option>${SECTORES.map(s=>`<option>${s}</option>`).join("")}</select></div>
+      <div class="field"><label for="rci">Ciudad *</label><select id="rci"><option value="">Seleccione…</option>${CIUDADES.map(s=>`<option>${s}</option>`).join("")}</select></div></div>
+      <div class="grid2"><div class="field"><label for="ra">Nombre del administrador *</label><input id="ra"></div>
+      <div class="field"><label for="rc">Correo corporativo *</label><input id="rc" type="email"></div></div>
+      <div class="grid2"><div class="field"><label for="rp">Contraseña * <span class="hint">mín. 8, letras y números</span></label><input id="rp" type="password" autocomplete="new-password"></div>
+      <div class="field"><label for="rp2">Confirmar contraseña *</label><input id="rp2" type="password" autocomplete="new-password"></div></div>
+      <label class="checkline"><input type="checkbox" id="rt"><span>Acepto los términos de uso y la <a href="#/privacidad" target="_blank">política de tratamiento de datos</a>. Entiendo que mi empresa es responsable de los datos de sus aspirantes.</span></label>
+      <button class="btn primary" style="margin-top:1em">Crear cuenta</button>
+    </form></div></div>`;
+}
+
+/* =====================================================================
+   VISTAS PRIVADAS (EMPRESA)
+   ===================================================================== */
+const coVacantes = () => DB.vacantes.filter(v=>v.empresaId===myCo().id);
+const coPosts = () => { const ids = new Set(coVacantes().map(v=>v.id)); return DB.postulaciones.filter(p=>ids.has(p.vacanteId)); };
+
+function vPanel(){
+  const vs = coVacantes(), ps = coPosts(), now = Date.now();
+  const nuevas = ps.filter(p=>now-p.creada < 7*DIA).length;
+  const ent = ps.filter(p=>p.estado==="entrevista"), con = ps.filter(p=>p.estado==="contratado").length;
+  const prox = ent.filter(p=>p.entrevista).sort((a,b)=>(a.entrevista.fecha+a.entrevista.hora).localeCompare(b.entrevista.fecha+b.entrevista.hora)).slice(0,6);
+  const rec = ps.slice().sort((a,b)=>b.creada-a.creada).slice(0,7);
+  after(()=>bindRowsOpen());
+  return `<div class="head"><div><h1>Panel de ${h(myCo().nombre)}</h1><div class="muted">Resumen del proceso de selección · ${fecha(now)}</div></div>
+    <div class="acts">${isAdmin()?`<a class="btn primary" href="#/vacantes/nueva">+ Publicar vacante</a>`:""}</div></div>
+  <div class="kpis">
+    ${kpi(vs.filter(v=>v.estado==="abierta").length,"Vacantes abiertas")}
+    ${kpi(ps.length,"Postulaciones totales")}
+    ${kpi(nuevas,"Nuevas (últimos 7 días)")}
+    ${kpi(ent.length,"En entrevista")}
+    ${kpi(con,"Contratados")}
+  </div>
+  <div class="cols">
+    <div class="card"><div style="display:flex;align-items:center"><h2>Últimas postulaciones</h2><a style="margin-left:auto" href="#/candidatos">Ver todas →</a></div>
+      <table><thead><tr><th>Candidato</th><th class="hide-m">Vacante</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>
+      ${rec.map(p=>`<tr class="click" data-open="${p.id}"><td><b>${h(p.nombre)}</b><div class="small muted">${p.experiencia} año(s) · ${h(p.estudios)}</div></td><td class="hide-m">${h(vacTit(p.vacanteId))}</td><td class="nowrap">${fecha(p.creada)}</td><td>${badge(p.estado)}</td></tr>`).join("")}
+      </tbody></table></div>
+    <div class="card"><h2>Próximas entrevistas</h2>
+      ${prox.length ? `<ul class="timeline">${prox.map(p=>`<li><b>${fecha(p.entrevista.fecha)} · ${h(p.entrevista.hora)}</b><br><a href="#" data-open="${p.id}">${h(p.nombre)}</a> — ${h(vacTit(p.vacanteId))}<br><span class="muted small">${h(p.entrevista.lugar)}</span></li>`).join("")}</ul>` : `<div class="empty">No hay entrevistas agendadas.</div>`}
+    </div>
+  </div>`;
+}
+const kpi = (v,l) => `<div class="card kpi"><div class="v">${v.toLocaleString("es-CO")}</div><div class="l">${l}</div></div>`;
+const vacTit = id => (DB.vacantes.find(v=>v.id===id)||{}).titulo || "—";
+function bindRowsOpen(){ $$("[data-open]").forEach(el=>el.onclick = ev => { ev.preventDefault(); abrirCandidato(+el.dataset.open); }); }
+
+/* ---------- Vacantes ---------- */
+function vVacantes(parts){
+  if(parts[1]==="nueva") return formVacante(null);
+  if(parts[2]==="editar") return formVacante(DB.vacantes.find(v=>v.id===+parts[1] && v.empresaId===myCo().id));
+  const vs = coVacantes().sort((a,b)=>({abierta:0,pausada:1,cerrada:2}[a.estado]-{abierta:0,pausada:1,cerrada:2}[b.estado]) || b.creada-a.creada);
+  const ps = coPosts();
+  after(()=>{
+    $$("[data-act]").forEach(b=>b.onclick=async ()=>{
+      const v = DB.vacantes.find(x=>x.id===+b.dataset.id), a=b.dataset.act;
+      if(a==="link"){ const url = location.href.split("#")[0]+"#/oferta/"+v.id; (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>toast("Enlace público copiado: "+url),()=>toast("Enlace público: "+url)); return; }
+      if(a==="pausar"){ v.estado="pausada"; toast("Vacante pausada: ya no recibe postulaciones."); }
+      if(a==="reanudar"){ v.estado="abierta"; toast("Vacante reabierta."); }
+      if(a==="cerrar"){ if(!(await confirmar(`¿Cerrar definitivamente la vacante "${v.titulo}"? Dejará de recibir postulaciones.`,"Cerrar vacante"))) return; v.estado="cerrada"; v.cerrada=Date.now(); toast("Vacante cerrada."); }
+      save(); render();
+    });
+  });
+  return `<div class="head"><div><h1>Vacantes</h1><div class="muted">${vs.length} vacantes · las abiertas aparecen en el portal público</div></div>
+    <div class="acts">${isAdmin()?`<a class="btn primary" href="#/vacantes/nueva">+ Publicar vacante</a>`:`<span class="muted small">Solo el administrador puede crear o modificar vacantes.</span>`}</div></div>
+  <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Vacante</th><th>Estado</th><th class="hide-m">Salario</th><th class="right">Postulaciones</th><th class="hide-m">Publicada</th><th>Acciones</th></tr></thead><tbody>
+  ${vs.map(v=>{ const n = ps.filter(p=>p.vacanteId===v.id).length, nn = ps.filter(p=>p.vacanteId===v.id && p.estado==="recibido").length; return `<tr>
+    <td><b>${h(v.titulo)}</b><div class="small muted">${h(v.ciudad)} · ${h(v.modalidad)} · ${v.experienciaMin}+ años · ${h(v.estudios)}</div></td>
+    <td>${vBadge(v.estado)}</td><td class="hide-m nowrap small">${money(v.salarioMin)} – ${money(v.salarioMax)}</td>
+    <td class="right"><b>${n}</b>${nn?`<div class="small muted">${nn} sin revisar</div>`:""}</td>
+    <td class="hide-m nowrap">${fecha(v.creada)}${v.cerrada?`<div class="small muted">Cerrada ${fecha(v.cerrada)}</div>`:""}</td>
+    <td><div style="display:flex;gap:.3em;flex-wrap:wrap">
+      <a class="btn sm primary" href="#/candidatos/${v.id}">Candidatos</a>
+      ${v.estado!=="cerrada"?`<button class="btn sm" data-act="link" data-id="${v.id}" title="Copiar enlace público">🔗 Enlace</button>`:""}
+      ${isAdmin() && v.estado!=="cerrada" ? `<a class="btn sm" href="#/vacantes/${v.id}/editar">Editar</a>
+        ${v.estado==="abierta"?`<button class="btn sm" data-act="pausar" data-id="${v.id}">Pausar</button>`:`<button class="btn sm" data-act="reanudar" data-id="${v.id}">Reanudar</button>`}
+        <button class="btn sm danger" data-act="cerrar" data-id="${v.id}">Cerrar</button>`:""}
+    </div></td></tr>`;}).join("")}
+  </tbody></table></div>`;
+}
+
+function formVacante(v){
+  const x = v || {titulo:"",ciudad:myCo().ciudad,modalidad:"Presencial",salarioMin:"",salarioMax:"",experienciaMin:0,estudios:"Bachiller",descripcion:"",requisitos:""};
+  after(()=>{
+    $("#fv").onsubmit = ev => {
+      ev.preventDefault();
+      const g = id => $(id).value.trim();
+      const d = {titulo:g("#vt"), ciudad:g("#vc"), modalidad:g("#vm"), salarioMin:+g("#vs1"), salarioMax:+g("#vs2"), experienciaMin:+g("#ve"), estudios:g("#ves"), descripcion:g("#vd"), requisitos:g("#vr")};
+      const errs = [];
+      if(d.titulo.length<4) errs.push("El título del cargo es obligatorio.");
+      if(!(d.salarioMin>0) || !(d.salarioMax>0)) errs.push("Indica el rango salarial.");
+      else if(d.salarioMin>d.salarioMax) errs.push("El salario mínimo no puede ser mayor que el máximo.");
+      if(d.salarioMin>0 && d.salarioMin<1423500) errs.push("El salario mínimo no puede ser inferior al SMMLV 2025 ($ 1.423.500).");
+      if(d.descripcion.length<20) errs.push("La descripción debe tener al menos 20 caracteres.");
+      if(!d.requisitos) errs.push("Escribe al menos un requisito.");
+      if(errs.length){ $("#verr").innerHTML=`<div class="alert err"><ul style="margin:0;padding-left:1.2em">${errs.map(e=>`<li>${h(e)}</li>`).join("")}</ul></div>`; return; }
+      if(v){ Object.assign(v,d); toast("Vacante actualizada."); }
+      else { const nv = {id:nextId(), empresaId:myCo().id, ...d, estado:"abierta", creada:Date.now(), cerrada:null, vacantes:1}; DB.vacantes.push(nv); toast("Vacante publicada. Ya aparece en el portal público."); }
+      save(); go("vacantes");
+    };
+  });
+  return `<div class="head"><div><h1>${v?"Editar vacante":"Publicar vacante"}</h1><div class="muted">Los requisitos definidos aquí se usan para filtrar a los candidatos.</div></div></div>
+  <div class="card" style="max-width:860px"><div id="verr"></div><form id="fv" novalidate>
+    <div class="field"><label for="vt">Cargo *</label><input id="vt" value="${h(x.titulo)}" placeholder="Ej.: Auxiliar administrativo"></div>
+    <div class="grid3">
+      <div class="field"><label for="vc">Ciudad *</label><select id="vc">${CIUDADES.map(c=>`<option ${c===x.ciudad?"selected":""}>${c}</option>`).join("")}</select></div>
+      <div class="field"><label for="vm">Modalidad *</label><select id="vm">${MODALIDADES.map(c=>`<option ${c===x.modalidad?"selected":""}>${c}</option>`).join("")}</select></div>
+      <div class="field"><label for="ves">Estudios mínimos *</label><select id="ves">${ESTUDIOS.map(c=>`<option ${c===x.estudios?"selected":""}>${c}</option>`).join("")}</select></div>
+    </div>
+    <div class="grid3">
+      <div class="field"><label for="vs1">Salario desde (COP) *</label><input id="vs1" type="number" step="50000" value="${x.salarioMin}"></div>
+      <div class="field"><label for="vs2">Salario hasta (COP) *</label><input id="vs2" type="number" step="50000" value="${x.salarioMax}"></div>
+      <div class="field"><label for="ve">Experiencia mínima (años) *</label><input id="ve" type="number" min="0" value="${x.experienciaMin}"></div>
+    </div>
+    <div class="field"><label for="vd">Descripción del cargo *</label><textarea id="vd">${h(x.descripcion)}</textarea></div>
+    <div class="field"><label for="vr">Requisitos * <span class="hint">(uno por línea)</span></label><textarea id="vr">${h(x.requisitos)}</textarea></div>
+    <div style="display:flex;gap:.5em"><button class="btn primary">${v?"Guardar cambios":"Publicar vacante"}</button><a class="btn" href="#/vacantes">Cancelar</a></div>
+  </form></div>`;
+}
+
+/* ---------- Bandeja de candidatos con filtros ---------- */
+let FILTROS = {texto:"", exp:"", est:"", ciudad:"", aspMax:"", estado:"", orden:"recientes"};
+function filtrar(list, f){
+  const t0 = performance.now();
+  const txt = f.texto.toLowerCase(), estMin = f.est ? ESTUDIOS.indexOf(f.est) : -1, amax = f.aspMax ? +f.aspMax : null;
+  let r = list.filter(p =>
+    (!txt || p.nombre.toLowerCase().includes(txt) || p.correo.includes(txt) || p.documento.includes(txt)) &&
+    (f.exp==="" || p.experiencia >= +f.exp) &&
+    (estMin<0 || ESTUDIOS.indexOf(p.estudios) >= estMin) &&
+    (!f.ciudad || p.ciudad===f.ciudad) &&
+    (amax==null || p.aspiracion <= amax) &&
+    (!f.estado || p.estado===f.estado));
+  const ord = {recientes:(a,b)=>b.creada-a.creada, experiencia:(a,b)=>b.experiencia-a.experiencia, aspiracion:(a,b)=>a.aspiracion-b.aspiracion, nombre:(a,b)=>a.nombre.localeCompare(b.nombre)}[f.orden];
+  r.sort(ord);
+  return {r, ms: performance.now()-t0};
+}
+function vCandidatos(parts){
+  const vid = parts[1] ? +parts[1] : null;
+  const v = vid && DB.vacantes.find(x=>x.id===vid && x.empresaId===myCo().id);
+  const base = v ? DB.postulaciones.filter(p=>p.vacanteId===v.id) : coPosts();
+  const ciudades = [...new Set(base.map(p=>p.ciudad))].sort();
+  after(()=>{
+    const pintar = () => {
+      const {r, ms} = filtrar(base, FILTROS);
+      const PAG = 50, shown = r.slice(0, PAG);
+      $("#perf").textContent = `${r.length.toLocaleString("es-CO")} de ${base.length.toLocaleString("es-CO")} candidatos · consulta resuelta en ${ms.toFixed(1)} ms`;
+      $("#tb").innerHTML = shown.map(p=>`<tr class="click" data-open="${p.id}">
+        <td><b>${h(p.nombre)}</b><div class="small muted">${h(p.correo)}</div></td>
+        ${v?"":`<td class="hide-m small">${h(vacTit(p.vacanteId))}</td>`}
+        <td class="nowrap">${p.experiencia} año(s)</td><td>${h(p.estudios)}</td><td>${h(p.ciudad)}</td>
+        <td class="nowrap right">${money(p.aspiracion)}</td><td>${badge(p.estado)}</td><td class="nowrap hide-m small">${fecha(p.creada)}</td></tr>`).join("")
+        || `<tr><td colspan="8" class="empty">Ningún candidato cumple los filtros.</td></tr>`;
+      $("#more").textContent = r.length>PAG ? `Mostrando los primeros ${PAG}. Ajusta los filtros para acotar la lista.` : "";
+      bindRowsOpen();
+    };
+    const map = {fx:"texto", fe:"exp", fes:"est", fci:"ciudad", fa:"aspMax", fst:"estado", fo:"orden"};
+    Object.entries(map).forEach(([id,k])=>{ const el=$("#"+id); el.value=FILTROS[k]; el.oninput = () => { FILTROS[k]=el.value; pintar(); }; });
+    $("#fclear").onclick = () => { FILTROS={texto:"",exp:"",est:"",ciudad:"",aspMax:"",estado:"",orden:"recientes"}; Object.entries(map).forEach(([id,k])=>$("#"+id).value=FILTROS[k]); pintar(); };
+    $("#fvac").onchange = () => go("candidatos" + ($("#fvac").value ? "/"+$("#fvac").value : ""));
+    $("#fcsv").onclick = () => exportarCSV(filtrar(base,FILTROS).r);
+    pintar();
+  });
+  return `<div class="head"><div><h1>${v?`Candidatos · ${h(v.titulo)}`:"Bandeja de candidatos"}</h1>
+      <div class="muted">${v?`${vBadge(v.estado)} · ${h(v.ciudad)} · requisitos: ${v.experienciaMin}+ años, ${h(v.estudios)}`:"Todas las vacantes de la empresa"}</div></div>
+    <div class="acts"><select id="fvac" aria-label="Vacante" style="width:auto"><option value="">Todas las vacantes</option>${coVacantes().map(x=>`<option value="${x.id}" ${x.id===vid?"selected":""}>${h(x.titulo)}</option>`).join("")}</select>
+      <button class="btn" id="fcsv">Exportar CSV</button></div></div>
+  <div class="card">
+    <div class="filters">
+      <div><label for="fx">Buscar</label><input id="fx" placeholder="Nombre, correo o documento"></div>
+      <div><label for="fe">Experiencia</label><select id="fe"><option value="">Cualquiera</option>${[0,1,2,3,5].map(n=>`<option value="${n}">${n}+ años</option>`).join("")}</select></div>
+      <div><label for="fes">Estudios mínimos</label><select id="fes"><option value="">Cualquiera</option>${ESTUDIOS.map(e=>`<option>${e}</option>`).join("")}</select></div>
+      <div><label for="fci">Ciudad</label><select id="fci"><option value="">Todas</option>${ciudades.map(c=>`<option>${h(c)}</option>`).join("")}</select></div>
+      <div><label for="fa">Aspiración máx.</label><select id="fa"><option value="">Sin límite</option>${[1500000,2000000,2500000,3000000,4000000,5000000].map(n=>`<option value="${n}">${money(n)}</option>`).join("")}</select></div>
+      <div><label for="fst">Estado</label><select id="fst"><option value="">Todos</option>${ESTADOS.map(e=>`<option value="${e.k}">${e.t}</option>`).join("")}</select></div>
+    </div>
+    <div style="display:flex;gap:.8em;align-items:center;flex-wrap:wrap;margin-bottom:.6em">
+      <span class="perf" id="perf"></span>
+      <span style="margin-left:auto" class="small muted">Ordenar por</span>
+      <select id="fo" style="width:auto"><option value="recientes">Más recientes</option><option value="experiencia">Más experiencia</option><option value="aspiracion">Menor aspiración</option><option value="nombre">Nombre</option></select>
+      <button class="btn sm ghost" id="fclear">Limpiar filtros</button>
+    </div>
+    <div style="overflow:auto"><table><thead><tr><th>Candidato</th>${v?"":`<th class="hide-m">Vacante</th>`}<th>Experiencia</th><th>Estudios</th><th>Ciudad</th><th class="right">Aspiración</th><th>Estado</th><th class="hide-m">Fecha</th></tr></thead>
+    <tbody id="tb"></tbody></table></div>
+    <div class="small muted" id="more" style="margin-top:.5em"></div>
+  </div>`;
+}
+
+function exportarCSV(list){
+  const cols = ["Radicado","Nombre","Documento","Correo","Teléfono","Ciudad","Experiencia","Estudios","Aspiración","Vacante","Estado","Fecha postulación","Autorización datos"];
+  const rows = list.map(p=>[radicado(p),p.nombre,p.documento,p.correo,p.telefono,p.ciudad,p.experiencia,p.estudios,p.aspiracion,vacTit(p.vacanteId),estadoTxt(p.estado),new Date(p.creada).toISOString().slice(0,10),p.autorizacion.acepta?"Sí "+p.autorizacion.version:"No"]);
+  const csv = "\ufeff" + [cols,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(";")).join("\r\n");
+  if(DL || !enMarco){ descargar("candidatos_talentolink.csv", new Blob([csv],{type:"text/csv"})).then(()=>toast(`Se exportaron ${list.length} candidatos.`)); return; }
+  { // en visores incrustados las descargas pueden estar bloqueadas: se ofrece copiar
+    const m=document.createElement("div"); m.className="modal-bg"; m.id="modal";
+    m.innerHTML=`<div class="modal"><div class="mh"><h2 style="margin:0">Exportar ${list.length} candidatos (CSV)</h2><button class="btn ghost x" id="mx">✕</button></div><div class="mb">
+      <p class="small muted">Este visor no permite descargar archivos. Copia el contenido y pégalo en Excel o en un archivo .csv.</p>
+      <textarea id="csvt" style="min-height:260px;font-family:monospace;font-size:.8rem" readonly>${h(csv.slice(1))}</textarea>
+      <div style="display:flex;gap:.5em;margin-top:.6em"><button class="btn primary" id="csvc">Copiar</button></div></div></div>`;
+    document.body.appendChild(m); $("#mx").onclick=()=>m.remove();
+    $("#csvc").onclick=()=>{ $("#csvt").select(); (navigator.clipboard?navigator.clipboard.writeText(csv.slice(1)):Promise.reject()).then(()=>toast("CSV copiado al portapapeles."),()=>{ try{document.execCommand("copy");toast("CSV copiado.");}catch(e){toast("Selecciona el texto y cópialo con Ctrl+C.");} }); };
+  }
+}
+
+/* ---------- Detalle del candidato (modal) ---------- */
+let pdfUrl = null;
+function closeModal(){ const m=$("#modal"); if(m) m.remove(); if(pdfUrl){ URL.revokeObjectURL(pdfUrl); pdfUrl=null; } document.removeEventListener("keydown", escClose); }
+const escClose = e => { if(e.key==="Escape") closeModal(); };
+async function abrirCandidato(id){
+  closeModal();
+  const p = DB.postulaciones.find(x=>x.id===id); if(!p) return;
+  const v = DB.vacantes.find(x=>x.id===p.vacanteId);
+  let blob = p.archivoId ? await Store.get(p.archivoId) : null;
+  if(!blob) blob = cvPdf(p);
+  pdfUrl = URL.createObjectURL(blob);
+  const cumple = [
+    [p.experiencia >= v.experienciaMin, `Experiencia: ${p.experiencia} de ${v.experienciaMin}+ años`],
+    [ESTUDIOS.indexOf(p.estudios) >= ESTUDIOS.indexOf(v.estudios), `Estudios: ${p.estudios} (mín. ${v.estudios})`],
+    [p.aspiracion <= v.salarioMax, `Aspiración ${money(p.aspiracion)} vs. tope ${money(v.salarioMax)}`],
+    [p.ciudad === v.ciudad || v.modalidad==="Remoto", `Ciudad: ${p.ciudad}${v.modalidad==="Remoto"?" (remoto)":""}`]
+  ];
+  const m = document.createElement("div"); m.className="modal-bg"; m.id="modal";
+  m.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt">
+    <div class="mh"><div><h2 id="mt" style="margin:0">${h(p.nombre)}</h2><div class="muted small">${h(v.titulo)} · Radicado ${radicado(p)}</div></div>
+      <span id="mbadge">${badge(p.estado)}</span><button class="btn ghost x" id="mx" aria-label="Cerrar">✕</button></div>
+    <div class="mb"><div class="cols">
+      <div>
+        <dl class="dl">
+          <dt>Documento</dt><dd>CC ${h(p.documento)}</dd><dt>Correo</dt><dd>${h(p.correo)}</dd><dt>Celular</dt><dd>${h(p.telefono)}</dd>
+          <dt>Ciudad</dt><dd>${h(p.ciudad)}</dd><dt>Experiencia</dt><dd>${p.experiencia} año(s)</dd><dt>Estudios</dt><dd>${h(p.estudios)}</dd>
+          <dt>Aspiración</dt><dd>${money(p.aspiracion)}</dd><dt>Postulación</dt><dd>${fechaHora(p.creada)}</dd>
+          <dt>Autorización de datos</dt><dd>${p.autorizacion.acepta?`✔ Aceptada · ${fechaHora(p.autorizacion.fecha)} · <span class="nowrap">${h(p.autorizacion.version)}</span>`:"✖ No registrada"}</dd>
+        </dl>
+        ${p.mensaje?`<p class="small" style="margin-top:.6em"><b>Mensaje:</b> ${h(p.mensaje)}</p>`:""}
+        <h3 style="margin-top:1em">Ajuste a los requisitos</h3>
+        <ul style="list-style:none;padding:0;margin:0 0 1em">${cumple.map(([ok,t])=>`<li class="small" style="margin:.2em 0"><b style="color:${ok?"var(--ok)":"var(--bad)"}">${ok?"✔ Cumple":"✖ No cumple"}</b> · ${h(t)}</li>`).join("")}</ul>
+        <h3>Hoja de vida</h3>
+        <iframe class="pdfbox" src="${pdfUrl}" title="Hoja de vida en PDF"></iframe>
+        <p style="margin-top:.4em"><button class="btn sm" id="mdl">⬇ Descargar PDF</button> <a class="btn sm" href="${pdfUrl}" target="_blank" rel="noopener">Abrir en otra pestaña</a></p>
+      </div>
+      <div>
+        <div class="card" style="box-shadow:none">
+          <h3>Cambiar estado</h3>
+          <div class="field"><label for="ms">Nuevo estado</label><select id="ms">${ESTADOS.map(e=>`<option value="${e.k}" ${e.k===p.estado?"selected":""}>${e.t}</option>`).join("")}</select></div>
+          <div id="entbox" style="display:${p.estado==="entrevista"?"block":"none"}">
+            <div class="grid2"><div class="field"><label for="mfd">Fecha entrevista</label><input id="mfd" type="date" value="${p.entrevista?.fecha||""}"></div>
+            <div class="field"><label for="mfh">Hora</label><input id="mfh" type="time" value="${p.entrevista?.hora||"09:00"}"></div></div>
+            <div class="field"><label for="mfl">Lugar o enlace</label><input id="mfl" value="${h(p.entrevista?.lugar||"Sede principal")}"></div>
+          </div>
+          <div class="field"><label for="mn">Nota (se envía al aspirante)</label><textarea id="mn" style="min-height:60px" placeholder="Opcional"></textarea></div>
+          <label class="checkline" style="margin-bottom:.8em"><input type="checkbox" id="mmail" checked><span>Notificar por correo al aspirante</span></label>
+          <button class="btn primary" id="mok">Guardar cambio</button>
+          <div id="merr"></div>
+        </div>
+        <h3 style="margin-top:1em">Historial del proceso</h3>
+        <ul class="timeline" id="mhist">${histHTML(p)}</ul>
+      </div>
+    </div></div></div>`;
+  document.body.appendChild(m);
+  m.onclick = e => { if(e.target===m) closeModal(); };
+  $("#mx").onclick = closeModal; document.addEventListener("keydown", escClose);
+  $("#mdl").onclick = async () => { if(!(await descargar(p.archivoNombre||"hoja_de_vida.pdf", blob))) toast("Este visor no permite descargas; usa el visor integrado."); };
+  $("#ms").onchange = () => $("#entbox").style.display = $("#ms").value==="entrevista" ? "block":"none";
+  $("#mok").onclick = () => {
+    const nuevo = $("#ms").value, nota = $("#mn").value.trim();
+    if(nuevo==="entrevista"){
+      const f=$("#mfd").value, hr=$("#mfh").value, l=$("#mfl").value.trim();
+      if(!f || !hr || !l){ $("#merr").innerHTML=`<div class="alert err" style="margin-top:.6em">Completa fecha, hora y lugar de la entrevista.</div>`; return; }
+      if(new Date(f+"T23:59") < new Date()){ $("#merr").innerHTML=`<div class="alert err" style="margin-top:.6em">La fecha de la entrevista no puede estar en el pasado.</div>`; return; }
+      p.entrevista = {fecha:f, hora:hr, lugar:l};
+    }
+    if(nuevo===p.estado && nuevo!=="entrevista" && !nota){ $("#merr").innerHTML=`<div class="alert info" style="margin-top:.6em">El candidato ya está en ese estado.</div>`; return; }
+    mover(p, nuevo, Date.now(), me().nombre, nota);
+    if($("#mmail").checked) notificarEstado(p, nota);
+    save();
+    $("#mbadge").innerHTML = badge(p.estado); $("#mhist").innerHTML = histHTML(p); $("#mn").value=""; $("#merr").innerHTML="";
+    toast(`Estado actualizado a "${estadoTxt(nuevo)}"${$("#mmail").checked?" y aspirante notificado":""}.`);
+    const tb = $("#tb"); if(tb) { const ev = new Event("input"); $("#fx").dispatchEvent(ev); }
+  };
+}
+const histHTML = p => p.historial.slice().reverse().map(x=>`<li><b>${h(estadoTxt(x.estado))}</b> · <span class="muted">${fechaHora(x.fecha)}</span><br><span class="small">${h(x.usuario)}${x.nota?" — "+h(x.nota):""}</span></li>`).join("");
+
+/* ---------- Reportes ---------- */
+function vReportes(){
+  const vs = coVacantes(), ps = coPosts();
+  const porVac = vs.map(v=>({l:v.titulo, n:ps.filter(p=>p.vacanteId===v.id).length, v})).sort((a,b)=>b.n-a.n);
+  const porEst = ESTADOS.map(e=>({l:e.t, n:ps.filter(p=>p.estado===e.k).length}));
+  const cerradas = vs.filter(v=>v.cerrada);
+  const tCierre = cerradas.length ? cerradas.reduce((s,v)=>s+(v.cerrada-v.creada),0)/cerradas.length/DIA : null;
+  const contr = ps.filter(p=>p.estado==="contratado").map(p=>{ const hh=p.historial.find(x=>x.estado==="contratado"); return (hh.fecha-p.creada)/DIA; });
+  const tContr = contr.length ? contr.reduce((a,b)=>a+b,0)/contr.length : null;
+  const revisadas = ps.filter(p=>p.historial.length>1).map(p=>(p.historial[1].fecha-p.creada)/DIA);
+  const tResp = revisadas.length ? revisadas.reduce((a,b)=>a+b,0)/revisadas.length : null;
+  const autor = ps.length ? Math.round(100*ps.filter(p=>p.autorizacion?.acepta).length/ps.length) : 100;
+  after(()=>{
+    const tip = $("#tip");
+    $$(".bar").forEach(b=>{ b.onmousemove = e => { tip.style.display="block"; tip.style.left=(e.clientX+12)+"px"; tip.style.top=(e.clientY-30)+"px"; tip.textContent=b.dataset.t; }; b.onmouseleave=()=>tip.style.display="none"; });
+    $("#rcsv").onclick = () => exportarCSV(ps);
+  });
+  const bars = (data) => { const max = Math.max(1,...data.map(d=>d.n)); return `<div class="bars">${data.map(d=>`<div class="bar-row"><span class="lab" title="${h(d.l)}">${h(d.l)}</span><div class="bar-track"><div class="bar" style="width:${(d.n/max*100).toFixed(1)}%" data-t="${h(d.l)}: ${d.n} postulaciones"></div></div><span class="val">${d.n}</span></div>`).join("")}</div>`; };
+  const d1 = n => n==null ? "—" : n.toFixed(1).replace(".",",") + " días";
+  return `<div class="head"><div><h1>Reportes</h1><div class="muted">Indicadores del proceso de selección de ${h(myCo().nombre)}</div></div>
+    <div class="acts"><button class="btn" id="rcsv">Exportar postulaciones (CSV)</button></div></div>
+  <div class="kpis">
+    ${kpi(ps.length,"Postulaciones")}
+    <div class="card kpi"><div class="v">${d1(tCierre)}</div><div class="l">Tiempo promedio de cierre de vacantes</div></div>
+    <div class="card kpi"><div class="v">${d1(tContr)}</div><div class="l">Tiempo promedio hasta contratación</div></div>
+    <div class="card kpi"><div class="v">${d1(tResp)}</div><div class="l">Tiempo promedio de primera respuesta</div></div>
+    <div class="card kpi"><div class="v">${autor} %</div><div class="l">Postulaciones con autorización de datos</div></div>
+  </div>
+  <div class="cols">
+    <div class="card"><h2>Postulaciones por vacante</h2><p class="muted small">Número de hojas de vida recibidas en cada vacante.</p>${bars(porVac)}</div>
+    <div class="card"><h2>Candidatos por estado</h2><p class="muted small">Distribución actual de los candidatos en cada etapa del proceso.</p>${bars(porEst)}</div>
+  </div>
+  <div class="card" style="margin-top:1.1em;padding:0;overflow:auto"><table><caption style="text-align:left;padding:1em 1.2em .2em"><h2 style="margin:0">Detalle por vacante</h2></caption>
+    <thead><tr><th>Vacante</th><th>Estado</th><th class="right">Postulaciones</th><th class="right">Entrevistas</th><th class="right">Contratados</th><th class="right">Días abierta</th></tr></thead><tbody>
+    ${porVac.map(({v,n})=>`<tr><td>${h(v.titulo)}</td><td>${vBadge(v.estado)}</td><td class="right">${n}</td>
+      <td class="right">${ps.filter(p=>p.vacanteId===v.id && p.historial.some(x=>x.estado==="entrevista")).length}</td>
+      <td class="right">${ps.filter(p=>p.vacanteId===v.id && p.estado==="contratado").length}</td>
+      <td class="right">${Math.round(((v.cerrada||Date.now())-v.creada)/DIA)}</td></tr>`).join("")}
+  </tbody></table></div>`;
+}
+
+/* ---------- Notificaciones (correo simulado) ---------- */
+function vNotif(parts, q){
+  const e = myCo(); const tipo = q.get("t")||"";
+  const list = DB.correos.filter(c=>c.empresaId===e.id && (!tipo || c.tipo===tipo));
+  after(()=>{ DB.correos.filter(c=>c.empresaId===e.id).forEach(c=>c.leido=true); save(); const pill=$(".side .pill"); if(pill) pill.remove(); });
+  return `<div class="head"><div><h1>Notificaciones por correo</h1><div class="muted">Registro de los correos que la plataforma envía a la empresa y a los aspirantes. <br><span class="small">En el prototipo el envío es simulado; en producción se conecta a un servicio de correo transaccional.</span></div></div></div>
+  <div class="tabs"><a href="#/notificaciones" class="${!tipo?"on":""}">Todos</a><a href="#/notificaciones?t=aspirante" class="${tipo==="aspirante"?"on":""}">A aspirantes</a><a href="#/notificaciones?t=empresa" class="${tipo==="empresa"?"on":""}">A la empresa</a></div>
+  ${list.slice(0,60).map(c=>`<div class="mail"><div style="display:flex;gap:1em;flex-wrap:wrap"><span class="s">${h(c.asunto)}</span><span class="muted small" style="margin-left:auto">${fechaHora(c.fecha)}</span></div>
+    <div class="small muted">Para: ${h(c.para)} · ${c.tipo==="aspirante"?"Aspirante":"Empresa"}</div><pre>${h(c.cuerpo)}</pre></div>`).join("") || `<div class="card empty">Aún no hay notificaciones.</div>`}`;
+}
+
+/* ---------- Usuarios y roles (solo administrador) ---------- */
+function vUsuarios(){
+  const e = myCo(), us = DB.usuarios.filter(u=>u.empresaId===e.id);
+  after(()=>{
+    $("#fu").onsubmit = async ev => {
+      ev.preventDefault();
+      const n=$("#un").value.trim(), c=$("#uc").value.trim().toLowerCase(), r=$("#ur").value, pw=$("#up").value;
+      const errs=[];
+      if(n.length<3) errs.push("Escribe el nombre.");
+      if(!emailOk(c)) errs.push("Correo no válido.");
+      if(DB.usuarios.some(u=>u.correo===c)) errs.push("Ese correo ya está registrado.");
+      if(!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(pw)) errs.push("Contraseña temporal: mínimo 8 caracteres con letras y números.");
+      if(errs.length){ $("#uerr").innerHTML=`<div class="alert err">${errs.map(h).join("<br>")}</div>`; return; }
+      const s=salt(); DB.usuarios.push({id:nextId(), empresaId:e.id, nombre:n, correo:c, rol:r, salt:s, hash:await hash(s+pw), creado:Date.now()});
+      correo(c,"Te invitaron a TalentoLink",`Hola ${n}:\n\n${me().nombre} te agregó como ${r==="admin"?"administrador":"reclutador"} de ${e.nombre}. Ingresa con tu correo y la contraseña temporal que te compartieron.`,"empresa",e.id);
+      save(); toast("Usuario creado."); render();
+    };
+    $$("[data-del]").forEach(b=>b.onclick=async ()=>{ const u=DB.usuarios.find(x=>x.id===+b.dataset.del); if(await confirmar(`¿Eliminar el acceso de ${u.nombre}?`,"Quitar acceso")){ DB.usuarios=DB.usuarios.filter(x=>x!==u); save(); toast("Acceso eliminado."); render(); } });
+  });
+  return `<div class="head"><div><h1>Usuarios y roles</h1><div class="muted">Controla quién accede a los datos de los aspirantes.</div></div></div>
+  <div class="cols">
+    <div class="card" style="padding:0"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th></th></tr></thead><tbody>
+      ${us.map(u=>`<tr><td><b>${h(u.nombre)}</b></td><td>${h(u.correo)}</td><td>${u.rol==="admin"?"Administrador":"Reclutador"}</td><td class="right">${u.id!==me().id?`<button class="btn sm danger" data-del="${u.id}">Quitar</button>`:`<span class="small muted">Tú</span>`}</td></tr>`).join("")}
+    </tbody></table>
+    <div style="padding:1em 1.2em" class="small muted"><b>Administrador:</b> gestiona vacantes, usuarios, datos de la empresa y candidatos.<br><b>Reclutador:</b> revisa candidatos, cambia estados, agenda entrevistas y consulta reportes; no crea ni cierra vacantes.</div></div>
+    <div class="card"><h2>Agregar usuario</h2><div id="uerr"></div><form id="fu" novalidate>
+      <div class="field"><label for="un">Nombre</label><input id="un"></div>
+      <div class="field"><label for="uc">Correo</label><input id="uc" type="email"></div>
+      <div class="grid2"><div class="field"><label for="ur">Rol</label><select id="ur"><option value="reclutador">Reclutador</option><option value="admin">Administrador</option></select></div>
+      <div class="field"><label for="up">Contraseña temporal</label><input id="up" type="text"></div></div>
+      <button class="btn primary">Crear usuario</button></form></div>
+  </div>`;
+}
+
+/* ---------- Empresa y herramientas del prototipo ---------- */
+function vEmpresa(){
+  const e = myCo();
+  after(()=>{
+    $("#fe2").onsubmit = ev => { ev.preventDefault(); e.nombre=$("#en").value.trim()||e.nombre; e.sector=$("#es").value; e.ciudad=$("#eci").value; save(); toast("Datos de la empresa actualizados."); render(); };
+    $("#gen").onclick = async () => {
+      const abiertas = coVacantes().filter(v=>v.estado!=="cerrada");
+      if(!abiertas.length) return toast("Necesitas al menos una vacante abierta o pausada.");
+      const t0 = performance.now();
+      for(let i=0;i<1000;i++){ const v = abiertas[i%abiertas.length]; DB.postulaciones.push(nuevaPost(v, 5000+i, {creada: Date.now()-Math.random()*20*DIA})); }
+      save();
+      $("#genres").innerHTML = `<div class="alert ok" style="margin-top:.6em">Se cargaron 1.000 hojas de vida de prueba en ${Math.round(performance.now()-t0)} ms. Total actual: ${coPosts().length.toLocaleString("es-CO")}. Ve a <a href="#/candidatos">Candidatos</a> y aplica filtros para medir el tiempo de respuesta.</div>`;
+    };
+    $("#rst").onclick = async () => { if(!(await confirmar("Se borrarán todos los datos y se cargarán de nuevo los datos de demostración. ¿Continuar?","Restablecer"))) return; await Store.clear(); await seed(); setSession(null); toast("Datos de demostración restablecidos."); go("login"); };
+  });
+  return `<div class="head"><div><h1>Empresa y datos</h1><div class="muted">Información de la empresa responsable del tratamiento de datos.</div></div></div>
+  <div class="cols">
+    <div class="card"><h2>Datos de la empresa</h2><form id="fe2">
+      <div class="field"><label for="en">Razón social</label><input id="en" value="${h(e.nombre)}"></div>
+      <div class="field"><label>NIT</label><input value="${h(e.nit)}" disabled></div>
+      <div class="grid2"><div class="field"><label for="es">Sector</label><select id="es">${SECTORES.map(s=>`<option ${s===e.sector?"selected":""}>${s}</option>`).join("")}</select></div>
+      <div class="field"><label for="eci">Ciudad</label><select id="eci">${CIUDADES.map(s=>`<option ${s===e.ciudad?"selected":""}>${s}</option>`).join("")}</select></div></div>
+      <button class="btn primary">Guardar</button></form>
+      <h3 style="margin-top:1.4em">Aviso de privacidad que ven los aspirantes</h3><div class="legal" style="max-height:none">${textoPolitica(e)}</div></div>
+    <div class="card"><h2>Herramientas del prototipo</h2>
+      <p class="small muted">Opciones solo para pruebas y evaluación del prototipo.</p>
+      <h3>Prueba de rendimiento (criterio de aceptación 2)</h3>
+      <p class="small">Carga 1.000 hojas de vida ficticias para comprobar que los filtros responden en menos de 3 segundos.</p>
+      <button class="btn" id="gen">Cargar 1.000 hojas de vida de prueba</button><div id="genres"></div>
+      <h3 style="margin-top:1.4em">Restablecer</h3>
+      <p class="small">Borra la información guardada en este navegador y vuelve a cargar los datos de demostración.</p>
+      <button class="btn danger" id="rst">Restablecer datos de demostración</button>
+      <p class="small muted" style="margin-top:1em">Almacenamiento: ${Store.ok?"IndexedDB del navegador (los datos se conservan al recargar)":"memoria temporal (los datos se pierden al recargar)"} · Versión ${VERSION}</p>
+    </div>
+  </div>`;
+}
+
+/* ---------- Arranque ---------- */
+(async function init(){
+  await Store.open();
+  DB = await Store.get("db");
+  if(!DB || !DB.empresas) await seed();
+  loadSession();
+  window.addEventListener("hashchange", render);
+  document.addEventListener("click", ()=>touchSession());
+  render();
+})();
+</script>
+</body>
+</html>

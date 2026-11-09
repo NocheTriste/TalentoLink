@@ -1,0 +1,102 @@
+[
+  {
+    "id": "CP02",
+    "nombre": "Registro rechaza contraseña débil",
+    "ok": true
+  },
+  {
+    "id": "CP01",
+    "nombre": "Registro de empresa nueva e inicio de sesión automático",
+    "ok": true
+  },
+  {
+    "id": "CP04",
+    "nombre": "Vacante: salario mínimo mayor que máximo es rechazado",
+    "ok": true
+  },
+  {
+    "id": "CP03",
+    "nombre": "Vacante publicada aparece en el portal público",
+    "ok": true
+  },
+  {
+    "id": "CP05",
+    "nombre": "Postulación sin autorización de datos es rechazada",
+    "ok": true
+  },
+  {
+    "id": "CP06",
+    "nombre": "Archivo que no es PDF es rechazado",
+    "ok": true
+  },
+  {
+    "id": "CP07",
+    "nombre": "Postulación válida genera radicado",
+    "ok": true,
+    "detalle": "TL-2026-000170"
+  },
+  {
+    "id": "CP08",
+    "nombre": "Postulación duplicada (mismo documento y vacante) es rechazada",
+    "ok": true
+  },
+  {
+    "id": "CP09",
+    "nombre": "Bloqueo temporal tras 5 intentos fallidos de inicio de sesión",
+    "ok": true
+  },
+  {
+    "id": "CP10",
+    "nombre": "Inicio de sesión del administrador",
+    "ok": true
+  },
+  {
+    "id": "CP11",
+    "nombre": "Filtros por experiencia y estudios devuelven solo candidatos que cumplen",
+    "ok": true,
+    "detalle": "3 de 39 candidatos · consulta resuelta en 0.0 ms"
+  },
+  {
+    "id": "CP12",
+    "nombre": "Cambio de estado a Entrevista registra historial y notifica al aspirante",
+    "ok": true
+  },
+  {
+    "id": "CP17",
+    "nombre": "Reportes calculan postulaciones por vacante y tiempo promedio de cierre",
+    "ok": true
+  },
+  {
+    "id": "CP14",
+    "nombre": "Vacante pausada deja de aparecer en el portal público",
+    "ok": true
+  },
+  {
+    "id": "CP18",
+    "nombre": "Los datos se conservan al recargar el navegador",
+    "ok": true
+  },
+  {
+    "id": "CP16",
+    "nombre": "Filtros con más de 1.000 hojas de vida responden en menos de 3 s",
+    "ok": true,
+    "detalle": "1039 HV, 0.2 ms promedio"
+  },
+  {
+    "id": "CP13",
+    "nombre": "El aspirante consulta su proceso y ve la fecha correcta de la entrevista",
+    "ok": true,
+    "detalle": "05 de nov de 2026"
+  },
+  {
+    "id": "CP15",
+    "nombre": "El rol reclutador no accede a usuarios ni a crear vacantes",
+    "ok": true
+  },
+  {
+    "id": "CP19",
+    "nombre": "Sin errores de JavaScript durante las pruebas",
+    "ok": true,
+    "detalle": ""
+  }
+]
